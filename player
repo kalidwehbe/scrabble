@@ -1,0 +1,12 @@
+import java.util.*;
+
+public class Player {
+    private String name;
+    private List<Tile> rack;
+    private int score;
+
+    public Player(String name) {
+        this.name = name;
+        this.rack = new ArrayList<>();
+        this.score = 0;
+    }

@@ -13,6 +13,7 @@ public class GameModel {
     private int currentPlayerIndex;          // Index of the player whose turn it is
     private List<GameObserver> observers;    // List of registered observers
     private Dictionary dictionary;           // Game dictionary for word validation
+    private boolean firstMove = true;        //ability to tell if we are on the first move to automatically invoke placement on middle of board
 
     /**
      * Constructs a new GameModel with the given players and dictionary file.
@@ -176,4 +177,7 @@ public class GameModel {
     public void start() {
         notifyObservers();
     }
+
+    public boolean isFirstMove() { return firstMove; }
+    public void setFirstMoveDone() { firstMove = false; }
 }

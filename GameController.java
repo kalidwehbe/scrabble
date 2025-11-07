@@ -43,71 +43,111 @@ public class GameController {
      * 
      * @param input User input string from the GUI
      */
-    public void handleCommand(String input) {
+public void handleCommand(String input) {
         Player current = model.getCurrentPlayer();
         input = input.trim().toUpperCase();
 
-        // Handle simple commands
+        // Handle PASS
         if (input.equals("PASS")) {
             model.passTurn();
             return;
         }
+
+        // Handle EXIT
         if (input.equals("EXIT")) {
+            view.displayMessage("Game ended.");
             System.exit(0);
         }
 
         String[] parts = input.split("\\s+");
 
-        // Handle tile swap
-        if (parts[0].equals("SWAP") && parts.length == 2) {
+        // Handle SWAP
+        if (parts[0].equals("SWAP")) {
+            if (parts.length != 2) {
+                view.displayMessage("Invalid swap command! Use: SWAP ABC");
+                return;
+            }
             String tilesToSwap = parts[1];
             if (current.swapTiles(tilesToSwap, model.getBag())) {
-                model.passTurn();
+                view.displayMessage("Tiles swapped successfully.");
+                model.passTurn(); // swapping counts as a turn
             } else {
                 view.displayMessage("Invalid swap! You don't have these tiles.");
             }
             return;
         }
 
-        // Validate PLACE command
-        if (parts.length != 5 || !parts[0].equals("PLACE")) {
-            view.displayMessage("Invalid command! Use PLACE WORD ROW COL DIRECTION");
-            return;
-        }
+        // Handle PLACE
+        if (parts[0].equals("PLACE")) {
+            // First move: only word + direction
+            if (model.isFirstMove()) {
+                if (parts.length != 3) {
+                    view.displayMessage("First move: PLACE WORD DIRECTION (H/V)");
+                    return;
+                }
+                String word = parts[1];
+                String dir = parts[2];
 
-        String word = parts[1];
+                boolean horizontal;
+                if (dir.equalsIgnoreCase("H")) horizontal = true;
+                else if (dir.equalsIgnoreCase("V")) horizontal = false;
+                else {
+                    view.displayMessage("Direction must be H or V.");
+                    return;
+                }
 
-        // Parse row number
-        int row;
-        try {
-            row = Integer.parseInt(parts[2]);
-            if (row < 1 || row > 15) {
-                view.displayMessage("Row must be 1–15");
+                // Place word at center (7,7)
+                boolean success = model.placeWord(word, 7, 7, horizontal);
+                if (success) model.setFirstMoveDone();
                 return;
             }
-            row--; // Convert to 0-based index
-        } catch (NumberFormatException e) {
-            view.displayMessage("Invalid row number!");
+
+            // Normal moves: PLACE WORD ROW COL DIRECTION
+            if (parts.length != 5) {
+                view.displayMessage("Invalid PLACE command! Use: PLACE WORD ROW COL DIRECTION");
+                return;
+            }
+
+            String word = parts[1];
+
+            // Parse row
+            int row;
+            try {
+                row = Integer.parseInt(parts[2]);
+                if (row < 1 || row > 15) {
+                    view.displayMessage("Row must be 1–15.");
+                    return;
+                }
+                row--; // convert to 0-based index
+            } catch (NumberFormatException e) {
+                view.displayMessage("Invalid row number!");
+                return;
+            }
+
+            // Parse column
+            int col = colLetterToIndex(parts[3]);
+            if (col < 0 || col > 14) {
+                view.displayMessage("Column must be A–O.");
+                return;
+            }
+
+            // Parse direction
+            boolean horizontal;
+            if (parts[4].equalsIgnoreCase("H")) horizontal = true;
+            else if (parts[4].equalsIgnoreCase("V")) horizontal = false;
+            else {
+                view.displayMessage("Direction must be H or V.");
+                return;
+            }
+
+            // Attempt to place word
+            boolean placed = model.placeWord(word, row, col, horizontal);
+            if (!placed) {
+                // Error message already set inside model
+                String lastError = current.getLastError();
+                if (lastError != null) view.displayMessage(lastError);
+            }
+
             return;
         }
-
-        // Parse column letter
-        int col = colLetterToIndex(parts[3]);
-        if (col < 0 || col > 14) {
-            view.displayMessage("Column must be A–O");
-            return;
-        }
-
-        // Parse direction
-        boolean horizontal;
-        if (parts[4].equalsIgnoreCase("H")) horizontal = true;
-        else if (parts[4].equalsIgnoreCase("V")) horizontal = false;
-        else {
-            view.displayMessage("Direction must be H or V");
-            return;
-        }
-
-        // Place the word on the board
-        model.placeWord(word, row, col, horizontal);
-    }
 }

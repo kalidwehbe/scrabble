@@ -4,7 +4,7 @@ A Java Scrabble implementation with GUI using MVC and Observer patterns.
 
 **Deliverables:** Source code, UML diagrams, documentation, tests
 **Authors:** Bashar Saadi, Kalid Wehbe, Madhav Sharma, Sammy Eyongorock
-**Last Updated:** November 8, 2024
+**Last Updated:** November 8, 2025
 
 ---
 

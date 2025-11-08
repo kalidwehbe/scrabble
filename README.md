@@ -13,7 +13,7 @@ A Java Scrabble implementation with GUI using MVC and Observer patterns.
 ### Compile and Run
 
 ```bash
-cd "/Users/bs/Desktop/SYSC3110/Project/scrabble 2 copy/src"
+cd "scrabble/src"
 javac *.java
 java Main
 ```
@@ -88,9 +88,9 @@ EXIT            → End game
 
 ### Milestone 2
 
-- **Kalid, Bashar, Madhav:** GameViewGUI (Swing), board display
+- **Kalid, Bashar, Madhav, Sammy:** GameViewGUI (Swing), board display
 - **Kalid, Bashar, Madhav:** GameController refactor, command parsing
-- **Kalid, Bashar, Madhav:** Observer pattern, MVC integration
+- **Kalid, Bashar, Madhav, Sammy:** Observer pattern, MVC integration
 - **All:** JavaDocs, testing, documentation
 
 ---

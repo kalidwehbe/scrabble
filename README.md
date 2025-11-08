@@ -140,7 +140,6 @@ EXIT            → End game
 2. **No Blank Tiles:** Wildcard tiles not supported
 3. **No Game End Detection:** Manual EXIT required
 4. **No Word Adjacency:** Words don't need to connect
-5. **No Undo:** Moves are permanent
 
 ---
 

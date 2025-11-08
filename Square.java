@@ -1,33 +1,31 @@
 /**
- * The Square class represents a single cell on the Scrabble board.
- * Each square can hold at most one Tile.
- *
- * Squares are responsible for storing and displaying their tile,
- * as well as checking whether they are occupied.
+ * Represents a single square on the Scrabble board.
+ * A square can hold at most one tile. Once a tile is placed, it cannot be replaced.
  */
 public class Square {
     private Tile tile;
+
     /**
-     * Checks if this square currently contains a tile.
-     *
-     * @return true if the square has a tile; false otherwise
+     * Checks if this square currently has a tile placed on it.
+     * @return true if a tile is present, false otherwise
      */
     public boolean hasTile() {
         return tile != null;
     }
+
     /**
-     * Returns the tile currently placed on this square.
-     *
-     * @return the Tile on this square, or null if empty
+     * Returns the tile currently on this square.
+     * @return The Tile object on this square, or null if empty
      */
     public Tile getTile() {
         return tile;
     }
+
     /**
-     * Places a tile on this square if it is empty.
-     * 
-     * @param tile the Tile to place on this square
-     * @throws IllegalStateException if the square already contains a tile
+     * Places a tile on this square.
+     * A tile can only be placed on an empty square.
+     * @param tile The Tile to place on this square
+     * @throws IllegalStateException if the square already has a tile
      */
     public void setTile(Tile tile) {
         if (!hasTile()) {
@@ -36,12 +34,10 @@ public class Square {
             throw new IllegalStateException("Square already has a tile!");
         }
     }
+
     /**
      * Returns a string representation of this square.
-     * - If it has a tile, it shows the tile’s letter.
-     * - If it’s empty, it shows a dot '.' to represent a blank space.
-     *
-     * @return the tile letter as a String or "." if the square is empty
+     * @return The tile's letter if occupied, or "." if empty
      */
     @Override
     public String toString() {

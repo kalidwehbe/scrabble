@@ -1,45 +1,40 @@
 /**
- * The Tile class represents an individual Scrabble tile.
- * Each tile has a letter and a corresponding score value.
- * 
- * This class is immutable — once created, a tile’s letter and score cannot change.
+ * Represents a single Scrabble tile with a letter and point value.
+ * Each tile can be placed on the board and contributes to a word's score.
  */
 public class Tile {
-    /** The letter printed on the tile (e.g., 'A', 'B', 'C'). */
-    private char letter;
-    /** The score value associated with this tile’s letter. */
-    private int score;
+    private final char letter;
+    private final int score;
+
     /**
      * Constructs a new Tile with the specified letter and score.
-     *
-     * @param letter the letter on the tile
-     * @param score the point value of the tile
+     * @param letter The character displayed on this tile
+     * @param score The point value of this tile
      */
     public Tile(char letter, int score) {
         this.letter = letter;
         this.score = score;
     }
+
     /**
-     * Gets the letter on this tile.
-     *
-     * @return the tile’s letter as a char
+     * Returns the letter on this tile.
+     * @return The character representing this tile's letter
      */
     public char getLetter() {
         return letter;
     }
+
     /**
-     * Gets the score value of this tile.
-     *
-     * @return the tile’s score as an integer
+     * Returns the point value of this tile.
+     * @return The score value for this tile
      */
     public int getScore() {
         return score;
     }
+
     /**
-     * Returns a string representation of the tile.
-     * In this case, it simply returns the letter.
-     *
-     * @return the tile’s letter as a String
+     * Returns a string representation of this tile.
+     * @return The letter as a String
      */
     @Override
     public String toString() {

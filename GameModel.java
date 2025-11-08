@@ -7,17 +7,16 @@ import java.util.*;
  */
 public class GameModel {
 
-    private Board board;                     // The Scrabble board
-    private List<Player> players;            // List of players in the game
-    private Queue<Tile> bag;                 // Bag of remaining tiles
+    private final Board board;                     // The Scrabble board
+    private final List<Player> players;            // List of players in the game
+    private final Queue<Tile> bag;                 // Bag of remaining tiles
     private int currentPlayerIndex;          // Index of the player whose turn it is
-    private List<GameObserver> observers;    // List of registered observers
-    private Dictionary dictionary;           // Game dictionary for word validation
+    private final List<GameObserver> observers;    // List of registered observers
+    private final Dictionary dictionary;           // Game dictionary for word validation
     private boolean firstMove = true;        //ability to tell if we are on the first move to automatically invoke placement on middle of board
 
     /**
      * Constructs a new GameModel with the given players and dictionary file.
-     *
      * @param names List of player names
      * @param dictionaryFile Path to dictionary file for valid words
      */
@@ -27,6 +26,12 @@ public class GameModel {
         observers = new ArrayList<>();
         bag = createTileBag();
         dictionary = new Dictionary(dictionaryFile);
+
+        // Check if dictionary loaded successfully
+        if (!dictionary.isLoaded()) {
+            System.err.println("WARNING: Dictionary failed to load!");
+            System.err.println(dictionary.getLoadError());
+        }
 
         for (String name : names) {
             Player p = new Player(name);
@@ -38,7 +43,6 @@ public class GameModel {
 
     /**
      * Creates and returns a shuffled bag of Scrabble tiles.
-     *
      * @return Queue of Tile objects representing the tile bag
      */
     private Queue<Tile> createTileBag() {
@@ -59,7 +63,6 @@ public class GameModel {
 
     /**
      * Adds a specified number of tiles with a given letter to a list.
-     *
      * @param list List to add tiles to
      * @param letter Character representing the tile
      * @param count Number of tiles to add
@@ -70,7 +73,6 @@ public class GameModel {
 
     /**
      * Returns the current player whose turn it is.
-     *
      * @return Player object representing the current player
      */
     public Player getCurrentPlayer() {
@@ -79,7 +81,6 @@ public class GameModel {
 
     /**
      * Returns the tile bag.
-     *
      * @return Queue of Tile objects remaining in the bag
      */
     public Queue<Tile> getBag() {
@@ -88,7 +89,6 @@ public class GameModel {
 
     /**
      * Registers an observer to be notified of game state changes.
-     *
      * @param obs Observer implementing GameObserver interface
      */
     public void addObserver(GameObserver obs) {
@@ -108,7 +108,6 @@ public class GameModel {
     /**
      * Attempts to place a word on the board for the current player.
      * Updates scores, player tiles, and notifies observers.
-     *
      * @param word Word to place on the board
      * @param row Starting row index (0-based)
      * @param col Starting column index (0-based)

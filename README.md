@@ -183,3 +183,11 @@ src/
 ```
 
 ---
+
+### Changes for Milestone 3
+
+1. Determine a winner using a score system
+2. Creating Premium tiles (DW, TW, DL, TL)
+3. Implment Blank tiles
+
+---

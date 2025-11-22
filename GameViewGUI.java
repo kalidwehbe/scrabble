@@ -1,141 +1,175 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 
-/**
- * GameViewGUI is a graphical user interface (GUI) for a Scrabble game.
- * It displays the board, instructions, messages, player racks, and allows
- * the user to input commands.
- * 
- * Implements the GameObserver interface to receive updates from the game model.
- */
 public class GameViewGUI extends JFrame implements GameObserver {
 
-    private JTextArea boardArea;      // Displays the Scrabble board
-    private JTextField inputField;    // Field for user command input
-    private JTextArea messageArea;    // Displays game messages, errors, and scores
-    private JTextArea instructionArea;// Displays instructions and commands
-    private GameController controller;// Reference to the game controller
-    private JLabel turnLabel;         // Displays the current player's turn
+    private JTextArea boardArea;
+    private JTextArea messageArea;
+    private JTextArea rulesArea;
+    private JTextArea playersArea;
+    private JTextField commandInput;
+    private JLabel scoreReferenceLabel;
+    private GameController controller;
 
-    /**
-     * Constructs the GUI window for the Scrabble game.
-     * Initializes the board display, input field, message area, and instructions.
-     */
     public GameViewGUI() {
-        super("Scrabble GUI");
-        setLayout(new BorderLayout());
-        setSize(700, 700);
+        setTitle("Scrabble Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1000, 850);
+        setLayout(new BorderLayout(10, 10));
 
-        // Board display
-        boardArea = new JTextArea(20, 20);
-        boardArea.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        // -------------------------------
+        // CENTER PANEL: 2x2 grid
+        // -------------------------------
+        JPanel centerPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+
+        // Top-left: Players + Scores
+        playersArea = new JTextArea();
+        playersArea.setEditable(false);
+        playersArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        playersArea.setLineWrap(true);
+        playersArea.setWrapStyleWord(true);
+        JScrollPane playersScroll = new JScrollPane(playersArea);
+        centerPanel.add(playersScroll);
+
+        // Top-right: Board
+        boardArea = new JTextArea();
+        boardArea.setFont(new Font("Monospaced", Font.PLAIN, 18));
         boardArea.setEditable(false);
-        add(new JScrollPane(boardArea), BorderLayout.CENTER);
+        JScrollPane boardScroll = new JScrollPane(boardArea);
+        centerPanel.add(boardScroll);
 
-        // Instructions display
-        instructionArea = new JTextArea(5, 20);
-        instructionArea.setEditable(false);
-        instructionArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        instructionArea.setText(
-                "=== Commands ===\n" +
-                "PLACE WORD ROW COL DIRECTION - Place a word\n" +
-                "   Example: PLACE HELLO 8 H H\n" +
-                "SWAP TILES - Swap tiles from your rack\n" +
-                "   Example: SWAP ABC\n" +
-                "PASS - Skip your turn\n" +
-                "EXIT - Quit the game\n"
-        );
-        add(new JScrollPane(instructionArea), BorderLayout.SOUTH);
+        // Bottom-left: Rules / Instructions
+        rulesArea = new JTextArea();
+        rulesArea.setEditable(false);
+        rulesArea.setLineWrap(true);
+        rulesArea.setWrapStyleWord(true);
+        rulesArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        rulesArea.setText(getRulesText());
+        JScrollPane rulesScroll = new JScrollPane(rulesArea);
+        centerPanel.add(rulesScroll);
 
-        // Input field for commands
-        inputField = new JTextField();
-        add(inputField, BorderLayout.NORTH);
-
-        // Message area for errors, info, and scores
-        messageArea = new JTextArea(5, 20);
+        // Bottom-right: Messages / Logs
+        messageArea = new JTextArea();
         messageArea.setEditable(false);
-        add(new JScrollPane(messageArea), BorderLayout.EAST);
+        messageArea.setLineWrap(true);
+        messageArea.setWrapStyleWord(true);
+        messageArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        JScrollPane messageScroll = new JScrollPane(messageArea);
+        centerPanel.add(messageScroll);
 
-        // Handle user input
-        inputField.addActionListener(e -> {
-            if (controller != null) controller.handleCommand(inputField.getText());
-            inputField.setText("");
+        add(centerPanel, BorderLayout.CENTER);
+
+        // -------------------------------
+        // BOTTOM PANEL: Command Input + Letter Scores
+        // -------------------------------
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+
+        scoreReferenceLabel = new JLabel(getLetterScoreString());
+        scoreReferenceLabel.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        scoreReferenceLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        scoreReferenceLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        bottomPanel.add(scoreReferenceLabel, BorderLayout.NORTH);
+
+        commandInput = new JTextField();
+        commandInput.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        bottomPanel.add(commandInput, BorderLayout.SOUTH);
+
+        commandInput.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (controller != null) {
+                    String cmd = commandInput.getText().trim();
+                    controller.handleCommand(cmd);
+                    commandInput.setText("");
+                }
+            }
         });
+
+        add(bottomPanel, BorderLayout.SOUTH);
 
         setVisible(true);
     }
 
-    /**
-     * Sets the controller for this GUI.
-     * 
-     * @param controller The GameController that handles user commands
-     */
+    // ----------------------------------------
+    // CONTROLLER LINK
+    // ----------------------------------------
     public void setController(GameController controller) {
         this.controller = controller;
     }
 
-    /**
-     * Updates the board display with the current board state.
-     * 
-     * @param board The Board object representing the current state of the game
-     */
+    // ----------------------------------------
+    // BOARD UPDATE
+    // ----------------------------------------
     private void updateBoardDisplay(Board board) {
         boardArea.setText(board.toString());
     }
 
-    /**
-     * Displays a message in the message area.
-     * 
-     * @param msg The message string to display
-     */
+    // ----------------------------------------
+    // OBSERVER UPDATE
+    // ----------------------------------------
+    @Override
+    public void update(Board board, List<Player> players, Player currentPlayer) {
+        updateBoardDisplay(board);
+
+        // Update players + scores
+        playersArea.setText("");
+        for (Player p : players) {
+            playersArea.append(p.getName() + " - Score: " + p.getScore() + "\n");
+            playersArea.append("Tiles: ");
+            for (Tile t : p.getRack()) {
+                playersArea.append(t.toString() + " ");
+            }
+            playersArea.append("\n\n");
+        }
+
+        // Update messages/log
+        messageArea.setText("Current Turn: " + currentPlayer.getName() + "\n\n");
+        String lastError = currentPlayer.getLastError();
+        if (lastError != null && !lastError.isEmpty()) {
+            messageArea.append("Message: " + lastError + "\n");
+        }
+    }
+
     public void displayMessage(String msg) {
         messageArea.append(msg + "\n");
     }
 
-    /**
-     * Updates the turn label to show the current player's turn.
-     * 
-     * @param playerName Name of the player whose turn it is
-     */
-    public void updateTurn(String playerName) {
-        turnLabel.setText("Turn: " + playerName);
-    }
-
-    /**
-     * Called whenever the model notifies observers of a change.
-     * Updates the board display, current turn, and player scores/racks.
-     * 
-     * @param board The current game board
-     * @param players List of all players in the game
-     * @param currentPlayer The player whose turn it currently is
-     */
-    @Override
-    public void update(Board board, List<Player> players, Player currentPlayer) {
-        // Update board
-        updateBoardDisplay(board);
-
-        // Show current turn
-        messageArea.setText("Current Turn: " + currentPlayer.getName() + "\n\n");
-
-        // Show scores and player racks
-        for (Player p : players) {
-            messageArea.append(p.getName() + " - Score: " + p.getScore() + "\n");
-            messageArea.append("Tiles: ");
-            for (Tile t : p.getRack()) {
-                messageArea.append(t.toString() + " ");
-            }
-            messageArea.append("\n\n");
-        }
-    }
-
-    /**
-     * Convenience method to show temporary messages or errors in the message area.
-     * 
-     * @param message The message string to display
-     */
     public void showMessage(String message) {
         messageArea.append(message + "\n");
     }
+
+    // ----------------------------------------
+    // RULES TEXT
+    // ----------------------------------------
+    private String getRulesText() {
+        return "=== SCRABBLE COMMANDS ===\n" +
+                "PLACE WORD ROW COL DIRECTION - Place a word\n" +
+                "   Example: PLACE HELLO 8 H H\n" +
+                "   Optional blanks at end if used: PLACE HELLO 8 H H LO\n\n" +
+                "SWAP LETTERS - Swap tiles from your rack\n" +
+                "   Example: SWAP ABC\n\n" +
+                "PASS - Skip your turn\n" +
+                "EXIT - Quit the game\n\n" +
+                "=== NOTES ===\n" +
+                "- Rows: 1 to 15\n" +
+                "- Columns: A to O\n" +
+                "- Direction: H = Horizontal, V = Vertical\n" +
+                "- Blank tiles can represent any letter and have 0 points\n" +
+                "- Letter scores are shown at the bottom";
+    }
+
+    // ----------------------------------------
+    // LETTER SCORE STRING
+    // ----------------------------------------
+    private String getLetterScoreString() {
+        return "Letter Values: " +
+                "A=1  B=3  C=3  D=2  E=1  F=4  G=2  H=4  I=1  J=8  " +
+                "K=5  L=1  M=3  N=1  O=1  P=3  Q=10 R=1  S=1  T=1  " +
+                "U=1  V=4  W=4  X=8  Y=4  Z=10" + "\n 2=DL 3=TL d=DW t=TW";
+
+    }
 }
+

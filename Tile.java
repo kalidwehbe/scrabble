@@ -1,43 +1,42 @@
-/**
- * Represents a single Scrabble tile with a letter and point value.
- * Each tile can be placed on the board and contributes to a word's score.
- */
 public class Tile {
-    private final char letter;
-    private final int score;
+    private char letter;
+    private int score;
+    private boolean blank; // true for blank tiles
 
-    /**
-     * Constructs a new Tile with the specified letter and score.
-     * @param letter The character displayed on this tile
-     * @param score The point value of this tile
-     */
+    // Regular tile constructor
     public Tile(char letter, int score) {
-        this.letter = letter;
+        this.letter = Character.toUpperCase(letter);
         this.score = score;
+        this.blank = false;
     }
 
-    /**
-     * Returns the letter on this tile.
-     * @return The character representing this tile's letter
-     */
-    public char getLetter() {
-        return letter;
+    // Internal constructor used for blank creation
+    private Tile(char letter, int score, boolean blank) {
+        this.letter = Character.toUpperCase(letter);
+        this.score = score;
+        this.blank = blank;
     }
 
-    /**
-     * Returns the point value of this tile.
-     * @return The score value for this tile
-     */
-    public int getScore() {
-        return score;
+    // Create an unassigned blank tile (in the bag / rack)
+    public static Tile blankTile() {
+        return new Tile('*', 0, true); // '*' used internally to represent an unused blank
     }
 
-    /**
-     * Returns a string representation of this tile.
-     * @return The letter as a String
-     */
+    // Create a tile to place on board that represents a blank set to chosenLetter
+    // Display letter = chosenLetter, score remains 0, isBlank = true
+    public static Tile placedBlank(char chosenLetter) {
+        return new Tile(chosenLetter, 0, true);
+    }
+
+    public char getLetter() { return letter; }
+    public void setScore(int point) {
+        score = point;
+    }
+    public boolean isBlank() { return blank; }
+
     @Override
     public String toString() {
         return Character.toString(letter);
     }
 }
+

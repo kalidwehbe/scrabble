@@ -1,46 +1,40 @@
-/**
- * Represents a single square on the Scrabble board.
- * A square can hold at most one tile. Once a tile is placed, it cannot be replaced.
- */
 public class Square {
+
+
+    public enum Bonus { NONE, DL, TL, DW, TW }
+
     private Tile tile;
+    private Bonus bonus;
 
-    /**
-     * Checks if this square currently has a tile placed on it.
-     * @return true if a tile is present, false otherwise
-     */
-    public boolean hasTile() {
-        return tile != null;
+    public Square() {
+        this.tile = null;
+        this.bonus = Bonus.NONE; // default square
     }
 
-    /**
-     * Returns the tile currently on this square.
-     * @return The Tile object on this square, or null if empty
-     */
-    public Tile getTile() {
-        return tile;
-    }
+    public boolean hasTile() { return tile != null; }
 
-    /**
-     * Places a tile on this square.
-     * A tile can only be placed on an empty square.
-     * @param tile The Tile to place on this square
-     * @throws IllegalStateException if the square already has a tile
-     */
+    public Tile getTile() { return tile; }
+
     public void setTile(Tile tile) {
-        if (!hasTile()) {
-            this.tile = tile;
-        } else {
-            throw new IllegalStateException("Square already has a tile!");
-        }
+        if (!hasTile()) this.tile = tile;
+        else throw new IllegalStateException("Square already has a tile!");
     }
 
-    /**
-     * Returns a string representation of this square.
-     * @return The tile's letter if occupied, or "." if empty
-     */
+    public Bonus getBonus() { return bonus; }
+    public void setBonus(Bonus bonus) { this.bonus = bonus; }
+    public char getLetter() { return getTile().getLetter();
+    }
+
     @Override
     public String toString() {
-        return hasTile() ? Character.toString(tile.getLetter()) : ".";
+        if (hasTile()) return Character.toString(tile.getLetter());
+        switch (bonus) {
+            case DL: return "2"; // double letter
+            case TL: return "3"; // triple letter
+            case DW: return "d"; // double word
+            case TW: return "t"; // triple word
+            default: return ".";
+        }
     }
 }
+

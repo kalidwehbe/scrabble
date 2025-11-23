@@ -1,7 +1,11 @@
+/**
+ * GameController handles user input and coordinates between the Model and View.
+ * It processes commands like PLACE, SWAP, PASS, and EXIT, and manages AI turns.
+ */
 public class GameController {
 
-    private GameModel model;
-    private GameViewGUI view;
+    private final GameModel model;
+    private final GameViewGUI view;
 
     public GameController(GameModel model, GameViewGUI view) {
         this.model = model;
@@ -157,8 +161,6 @@ public class GameController {
             }
             model.setFirstMoveDone();
         }
-        System.out.println("Now it's a human player's turn");
-
     }
 
 }

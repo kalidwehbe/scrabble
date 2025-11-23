@@ -7,12 +7,12 @@ import java.util.*;
  */
 public class GameModel {
 
-    public Board board;                     // The Scrabble board
+    private Board board;                     // The Scrabble board
     private List<Player> players;            // List of players in the game
     private Queue<Tile> bag;                 // Bag of remaining tiles
     private int currentPlayerIndex;          // Index of the player whose turn it is
     private List<GameObserver> observers;    // List of registered observers
-    public Dictionary dictionary;           // Game dictionary for word validation
+    private Dictionary dictionary;           // Game dictionary for word validation
     private boolean firstMove = true;        // ability to tell if we are on the first move
 
     // Official Scrabble letter values (blanks = 0)
@@ -67,8 +67,8 @@ public class GameModel {
         addTiles(tiles, 'V', 2); addTiles(tiles, 'W', 2); addTiles(tiles, 'X', 1);
         addTiles(tiles, 'Y', 2); addTiles(tiles, 'Z', 1);
 
-        // Add 4 blanks (wildcards)
-        for (int i = 0; i < 4; i++) tiles.add(Tile.blankTile());
+        // Add 2 blanks (wildcards) - standard Scrabble rules
+        for (int i = 0; i < 2; i++) tiles.add(Tile.blankTile());
 
         Collections.shuffle(tiles);
         return new LinkedList<>(tiles);
@@ -194,7 +194,6 @@ public class GameModel {
 
             // Bingo bonus: 50 points if player placed all 7 tiles this turn
             if (newlyPlacedIndices.size() == 7) scoreGained += 50;
-            System.out.println(scoreGained);
             p.addScore(scoreGained);
 
             // Refill player's rack with as many tiles as they placed

@@ -25,9 +25,10 @@ public class Board {
         grid[14][7].setBonus(Square.Bonus.TW);
 
 
-        // Double Word (DW) positions (excluding center and TW)
+        // Double Word (DW) positions (including center star)
         int[][] dw = {{1,1},{2,2},{3,3},{4,4},{13,1},{12,2},{11,3},{10,4},
-                {1,13},{2,12},{3,11},{4,10},{13,13},{12,12},{11,11},{10,10}};
+                {1,13},{2,12},{3,11},{4,10},{13,13},{12,12},{11,11},{10,10},
+                {7,7}}; // Center star is DW in standard Scrabble
         for (int[] pos : dw) grid[pos[0]][pos[1]].setBonus(Square.Bonus.DW);
 
         // Double Letter (DL) positions

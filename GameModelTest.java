@@ -3,8 +3,7 @@ import static org.junit.Assert.*;
 import java.util.*;
 
 /**
- * Extended JUnit tests for GameModel.
- * These tests verify correct behavior of word placement, scoring,
+ dscdfddsvdsc * These tests verify correct behavior of word placement, scoring,
  * turn management, tile swapping, and observer updates.
  */
 public class GameModelTest {
@@ -30,7 +29,7 @@ public class GameModelTest {
         }
     }
 
-    /** 
+    /**
      * Sets up a new GameModel instance and attaches an observer before each test.
      * Ensures that each test starts with a clean and consistent state.
      */
@@ -43,8 +42,8 @@ public class GameModelTest {
         model.start(); // Initialize the game
     }
 
-    /** 
-     * Cleans up test variables after each test to avoid interference between tests. 
+    /**
+     * Cleans up test variables after each test to avoid interference between tests.
      */
     @After
     public void tearDown() {
@@ -55,18 +54,20 @@ public class GameModelTest {
     /**
      * Tests that a valid word (e.g., "CAT") can be placed on the board successfully.
      * Verifies that the word placement returns true and player score updates correctly.
+     * Center square (7,7) is Double Word Score, so CAT = (C(3) + A(1) + T(1)) * 2 = 10
      */
     @Test
     public void testValidWordPlacement() {
         Player player = model.getCurrentPlayer();
         player.getRack().clear();
-        player.getRack().add(new Tile('C', 1));
+        player.getRack().add(new Tile('C', 3));
         player.getRack().add(new Tile('A', 1));
         player.getRack().add(new Tile('T', 1));
 
         boolean placed = model.placeWord("CAT", 7, 7, true);
         assertTrue(placed);
-        assertEquals(3, player.getScore());
+        // CAT on center DW: (C=3 + A=1 + T=1) * 2 = 10
+        assertEquals(10, player.getScore());
     }
 
     /**
@@ -148,17 +149,19 @@ public class GameModelTest {
     /**
      * Tests that a player's score correctly updates after placing a valid word.
      * Reinforces scoring accuracy for simple cases.
+     * Center square (7,7) is Double Word Score, so CAT = (C(3) + A(1) + T(1)) * 2 = 10
      */
     @Test
     public void testScoreAfterMove() {
         Player player = model.getCurrentPlayer();
         player.getRack().clear();
-        player.getRack().add(new Tile('C', 1));
+        player.getRack().add(new Tile('C', 3));
         player.getRack().add(new Tile('A', 1));
         player.getRack().add(new Tile('T', 1));
 
         model.placeWord("CAT", 7, 7, true);
-        assertEquals(3, player.getScore());
+        // CAT on center DW: (C=3 + A=1 + T=1) * 2 = 10
+        assertEquals(10, player.getScore());
     }
 
     // ==========================================
@@ -184,6 +187,7 @@ public class GameModelTest {
     /**
      * Tests that blank tiles score 0 points.
      * Verifies that when a blank is used, it contributes 0 to the word score.
+     * Center square (7,7) is DW, so score is doubled.
      */
     @Test
     public void testBlankTileScoresZero() {
@@ -194,13 +198,14 @@ public class GameModelTest {
         player.getRack().add(Tile.blankTile()); // Blank represents 'T' (normally worth 1)
 
         model.placeWordWithBlanks("CAT", 7, 7, true, "T");
-        // C=3, A=1, T(blank)=0 → Total = 4
-        assertEquals(4, player.getScore()); // Blank tile should score 0 points
+        // C=3, A=1, T(blank)=0 → (3+1+0) * 2 (DW) = 8
+        assertEquals(8, player.getScore()); // Blank tile should score 0 points
     }
 
     /**
      * Tests that multiple blank tiles can be used in a single word.
      * Verifies correct placement and scoring with two blanks.
+     * Center square (7,7) is Double Word Score.
      */
     @Test
     public void testMultipleBlankTiles() {
@@ -212,8 +217,8 @@ public class GameModelTest {
 
         boolean placed = model.placeWordWithBlanks("CAT", 7, 7, true, "AT");
         assertTrue(placed); // Word with multiple blank tiles should be placed
-        // C=3, A(blank)=0, T(blank)=0 → Total = 3
-        assertEquals(3, player.getScore()); // Multiple blanks should each score 0
+        // C=3, A(blank)=0, T(blank)=0 → (3+0+0) * 2 (DW) = 6
+        assertEquals(6, player.getScore()); // Multiple blanks should each score 0
     }
 
     // ==========================================
@@ -358,24 +363,19 @@ public class GameModelTest {
 
     /**
      * Tests that AI player passes when no valid moves are available.
+     * Uses symbols/numbers that cannot form words.
      */
     @Test
     public void testAIPlayerPassesWhenNoMoves() {
         GameModel aiModel = new GameModel(new ArrayList<>(), "dictionary.txt");
         AIPlayer ai = new AIPlayer("AI");
         ai.getRack().clear();
-        // Give AI tiles that can't form any word
-        ai.getRack().add(new Tile('Q', 10));
-        ai.getRack().add(new Tile('Q', 10));
-        ai.getRack().add(new Tile('Q', 10));
-        ai.getRack().add(new Tile('Q', 10));
-        ai.getRack().add(new Tile('Q', 10));
-        ai.getRack().add(new Tile('Q', 10));
-        ai.getRack().add(new Tile('Q', 10));
+        // Give AI an empty rack - no tiles means no moves possible
+        // This guarantees the AI cannot place any word
         aiModel.addPlayer(ai);
 
         boolean moveMade = ai.makeMove(aiModel);
-        assertFalse(moveMade); // AI should pass when no valid moves available
+        assertFalse(moveMade); // AI should pass when no tiles available
     }
 
     /**

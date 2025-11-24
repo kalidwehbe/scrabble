@@ -173,9 +173,7 @@ The AI player (`AIPlayer.java`) implements a **greedy strategy** that selects th
 - **Kalid, Bashar:** Blank tile implementation, premium square scoring
 - **Kalid, Bashar:** AI Player implementation, greedy strategy
 - **Kalid, Bashar:** Premium square board setup (DL, TL, DW, TW)
-- **Kalid, Bashar:** JUnit tests for Milestone 3 features, documentation
-- **Madhav, Sammy:** UML and Sequence Diagram
-- **All:** Code Review, testing
+- **Kalid, Bashar:** JUnit tests for Milestone 3 features, documentation, UML updates
 
 ---
 
@@ -298,8 +296,8 @@ The AI player (`AIPlayer.java`) implements a **greedy strategy** that selects th
 ## Known Issues
 
 1. **No Game End Detection:** Manual EXIT required (planned for Milestone 4)
-2. **No Cross-Word Validation:** Perpendicular words formed are not validated against dictionary
-3. **AI Performance:** Large dictionaries may cause slight delays on AI turns
+3. **No Cross-Word Validation:** Perpendicular words formed are not validated against dictionary
+4. **AI Performance:** Large dictionaries may cause slight delays on AI turns
 
 ---
 
@@ -357,7 +355,7 @@ src/
 ├── Square.java            # Board square with bonus type
 ├── Dictionary.java        # Word validation
 ├── GameModelTest.java     # Unit tests
-└── dictionary.txt       
+└── dictionary.txt         
 ```
 
 ---

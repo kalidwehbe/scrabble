@@ -1,10 +1,10 @@
-# Scrabble - Milestone 3
+# Scrabble - Milestone 4
 
 A Java Scrabble implementation with GUI using MVC and Observer patterns.
 
 **Deliverables:** Source code, UML diagrams, sequence diagrams, documentation, JUnit tests
 **Authors:** Bashar Saadi, Kalid Wehbe, Madhav Sharma, Sammy Eyongorock
-**Last Updated:** November 22, 2025
+**Last Updated:** November 26, 2025
 
 ---
 
@@ -22,9 +22,12 @@ java Main
 
 1. Enter 2-4 players and names at console prompt
 2. Choose whether each player is Human or AI
-3. GUI window opens with board, command input, and player info
-4. Type commands in top text field and press Enter (for human players)
-5. AI players automatically take their turns
+3. Select a board (1. Standard, 2. Diagonal, 3 Corner Star)
+4. GUI window opens with board, command input, and player info
+5. Type commands in top text field and press Enter (for human players)
+6. AI players automatically take their turns
+7. Use File menu to Save/Load games (Ctrl+S / Ctrl+L)
+8. Use Edit menu for Undo/Redo (Ctrl+Z / Ctrl+Y)
 
 ---
 
@@ -60,6 +63,38 @@ SWAP <TILES>    - Example: SWAP ABC
 PASS            - Skip turn
 EXIT            - End game
 ```
+
+---
+
+## New Features in Milestone 4
+
+### 1. Custom Board Selection
+
+- Players can select from multiple custom board layouts at game start
+- **Standard Board:** Traditional Scrabble premium square placement
+- **Diagonal Board:** Premium squares arranged in diagonal patterns
+- **Corner Star Board:** Star-shaped premium square arrangement radiating from corners
+- Boards are defined in XML format for easy customization
+
+### 2. Undo/Redo Functionality
+
+- **Undo:** Revert the last move (Ctrl+Z or Edit → Undo)
+- **Redo:** Re-apply an undone move (Ctrl+Y or Edit → Redo)
+- **Multi-level:** Supports multiple consecutive undo/redo operations
+- Complete game state restoration including board, scores, and tile racks
+- Efficient implementation using stack-based state snapshots
+
+### 3. Save/Load Game
+
+- **Save Game:** Save current game state to a file (Ctrl+S or File → Save Game)
+- **Load Game:** Resume a previously saved game (Ctrl+L or File → Load Game)
+- Saves complete game state including:
+  - Board configuration and placed tiles
+  - All player scores and tile racks
+  - Current turn and game progress
+  - Undo/redo history
+- File format: Serialized `.sav` files with error handling
+- User-friendly file chooser dialogs
 
 ---
 
@@ -177,6 +212,14 @@ The AI player (`AIPlayer.java`) implements a **greedy strategy** that selects th
 - **Madhav, Sammy:** UML and Sequence Diagram
 - **All:** Code Review, testing
 
+### Milestone 4
+
+- **Kalid, Bashar:** Custom board XML files (Standard, Diagonal, Corner Star)
+- **Kalid, Bashar:** Undo/Redo implementation with state snapshots
+- **Kalid, Bashar:** Save/Load game functionality with serialization
+- **Kalid, Bashar:** JUnit tests for undo/redo and serialization
+- **Kalid, Bashar:** Project organization and documentation updates
+
 ---
 
 ## Changes from Milestone 1
@@ -215,13 +258,6 @@ The AI player (`AIPlayer.java`) implements a **greedy strategy** that selects th
 - Added complete JavaDocs to all classes
 
 **Rationale:** Observer pattern decouples view from model. First move flag simplifies center placement logic. Error tracking enables better user feedback. Refactored controller follows Single Responsibility Principle. Immutability improves thread safety.
-
-### Milestone 3
-
-- **Kalid, Bashar:** Blank tile implementation, premium square scoring
-- **Kalid, Bashar:** AI Player implementation, greedy strategy
-- **Kalid, Bashar:** Premium square board setup (DL, TL, DW, TW)
-- **Kalid, Bashar:** JUnit tests for Milestone 3 features, documentation, UML updates
 
 ---
 
@@ -295,11 +331,95 @@ The AI player (`AIPlayer.java`) implements a **greedy strategy** that selects th
 
 ---
 
+## Changes from Milestone 3
+
+### New Features
+
+**Custom Board Selection:**
+
+- Added board selection menu at game startup
+- Created 3 XML board configuration files with different premium square layouts
+- Enhanced `Board.java` to load boards from XML files
+
+**Undo/Redo System:**
+
+- Added `GameState` class to capture complete game snapshots
+- Implemented `createStateSnapshot()` and `restoreState()` in `GameModel`
+- Added undo/redo methods in `GameController` with stack-based history
+- Integrated undo/redo menu items in `GameViewGUI` with keyboard shortcuts
+
+**Save/Load Functionality:**
+
+- Made all model classes `Serializable` (Board, Player, Tile, Square, GameModel, GameState, Dictionary)
+- Added `saveGame()` and `loadGame()` methods in `GameController`
+- Implemented file chooser dialogs with `.sav` file extension filter
+- Added comprehensive error handling for I/O operations
+- Created nested `SaveState` class to encapsulate model and undo/redo stacks
+
+### Modified Classes
+
+**GameModel.java:**
+
+- Added `Serializable` interface with `serialVersionUID`
+- Enhanced JavaDocs for `createStateSnapshot()` and `restoreState()`
+- Made `observers` field `transient` to prevent GUI serialization
+- Added null checks in `addObserver()` and `notifyObservers()` for transient field handling
+
+**GameController.java:**
+
+- Added imports for serialization and file choosers
+- Implemented `saveGame()` method with file dialog and serialization
+- Implemented `loadGame()` method with deserialization and state restoration
+- Added nested `SaveState` class for complete game persistence
+- Added undo/redo stack management
+
+**GameViewGUI.java:**
+
+- Updated menu bar to include File menu with Save/Load options
+- Added Edit menu with Undo/Redo options
+- Added keyboard shortcuts (Ctrl+S, Ctrl+L, Ctrl+Z, Ctrl+Y)
+- Integrated with controller's save/load and undo/redo methods
+
+**Board.java, Player.java, Tile.java, Square.java, GameState.java, Dictionary.java:**
+
+- All implement `Serializable` interface
+- Added `serialVersionUID` for version control
+- Added `copy()` methods where needed for deep cloning
+
+**Main.java:**
+
+- Updated to include board file path selection
+- Board file paths now point to `boards/` directory
+
+### Data Structure Changes
+
+| Class             | Change                                 | Rationale                                                   |
+| ----------------- | -------------------------------------- | ----------------------------------------------------------- |
+| GameController    | Added `SaveState` inner class        | Encapsulates complete save data including undo/redo history |
+| GameController    | Added undo/redo stacks                 | Manages game state history for undo/redo                    |
+| GameModel         | Made `observers` field `transient` | Prevents GUI components from being serialized               |
+| GameState         | Made `Serializable`                  | Enables saving undo/redo history                            |
+| All model classes | Added `Serializable`                 | Required for save/load functionality                        |
+| Dictionary        | Made `Serializable`                  | Required since it's contained in GameModel                  |
+| Board             | Added XML file loading support         | Supports custom board selection                             |
+
+### Rationale
+
+- **Custom Boards:** Adds variety and replayability to the game
+- **Undo/Redo:** Essential quality-of-life feature for players to correct mistakes
+- **Save/Load:** Enables long game sessions across multiple play sessions
+- **Serialization:** Standard Java approach for object persistence
+- **State Snapshots:** Immutable copies prevent reference issues in undo/redo
+- **Transient Observers:** Prevents Swing GUI components from being serialized, avoiding platform-specific serialization issues
+
+---
+
 ## Known Issues
 
-1. **No Game End Detection:** Manual EXIT required (planned for Milestone 4)
+1. **No Game End Detection:** Manual EXIT required
 2. **No Cross-Word Validation:** Perpendicular words formed are not validated against dictionary
 3. **AI Performance:** Large dictionaries may cause slight delays on AI turns
+4. **Save File Compatibility:** Saved games may not be compatible across different Java versions due to serialization
 
 ---
 
@@ -339,6 +459,26 @@ GameModelTest.java includes comprehensive tests (requires JUnit 4):
 - `testAIPlayerSelectsHighScoringMove` - AI greedy strategy verification
 - `testAIPlayerUsesBlankTiles` - AI can utilize blank tiles
 
+**Undo/Redo Tests (Milestone 4):**
+
+- `testUndoPlacedWord` - Undo correctly reverts a placed word
+- `testRedoPlacedWord` - Redo re-applies an undone move
+- `testMultipleUndo` - Multiple consecutive undo operations
+- `testMultipleRedo` - Multiple consecutive redo operations
+- `testGameStateSnapshotPreservesData` - State snapshots preserve all game data
+- `testUndoSwapTiles` - Undo tile swapping operations
+
+**Serialization/Deserialization Tests (Milestone 4):**
+
+- `testSerializeGameModel` - GameModel can be serialized
+- `testDeserializeGameModel` - GameModel can be deserialized
+- `testSerializationPreservesPlayerData` - Player scores and names preserved
+- `testSerializationPreservesBoardState` - Board tiles preserved after save/load
+- `testSerializeGameState` - GameState objects are serializable
+- `testDeserializationErrorHandling` - Proper error handling for corrupted data
+- `testSerializationAfterMultipleMoves` - Save/load works after multiple turns
+- `testSerializationPreservesTileBag` - Tile bag state is preserved
+
 ---
 
 ## Files
@@ -357,17 +497,19 @@ src/
 ├── Square.java            # Board square with bonus type
 ├── Dictionary.java        # Word validation
 ├── GameModelTest.java     # Unit tests
-└── dictionary.txt       
+└── dictionary.txt   
 ```
 
 ---
 
-## Future Improvements (Milestone 4)
+## Future Improvements (Milestone 5?)
 
-1. Automatic game end detection (empty bag + empty rack)
-2. Cross-word validation for perpendicular words
-3. Undo/redo functionality
-4. Save/load game state
-5. Network multiplayer support
+1. File Organization
+2. Automatic game end detection (empty bag + empty rack)
+3. Cross-word validation for perpendicular words
+4. Network multiplayer support
+5. Timer for timed games
+6. Hint system for suggesting valid words
+7. Score history and statistics tracking
 
 ---

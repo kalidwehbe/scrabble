@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -5,13 +6,14 @@ import java.util.*;
  * It manages the board, players, tile bag, dictionary, and turn order.
  * Observers can register to be notified of changes to the game state.
  */
-public class GameModel {
+public class GameModel implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private Board board;                     // The Scrabble board
     private List<Player> players;            // List of players in the game
     private Queue<Tile> bag;                 // Bag of remaining tiles
     private int currentPlayerIndex;          // Index of the player whose turn it is
-    private List<GameObserver> observers;    // List of registered observers
+    private transient List<GameObserver> observers;    // List of registered observers (not serialized)
     private Dictionary dictionary;           // Game dictionary for word validation
     private boolean firstMove = true;        // ability to tell if we are on the first move
 
@@ -117,6 +119,9 @@ public class GameModel {
      * @param obs Observer implementing GameObserver interface
      */
     public void addObserver(GameObserver obs) {
+        if (observers == null) {
+            observers = new ArrayList<>();
+        }
         observers.add(obs);
     }
 
@@ -124,37 +129,19 @@ public class GameModel {
      * Notifies all registered observers of the current game state.
      */
     private void notifyObservers() {
+        if (observers == null) {
+            return;
+        }
         Player current = getCurrentPlayer();
         for (GameObserver obs : observers) {
             obs.update(board, players, current);
         }
     }
 
-
-    private Stack<GameState> undoStack;
-    private Stack<GameState> redoStack;
-
-    public void saveStateForUndo() {
-        undoStack.push(createStateSnapshot());
-        redoStack.clear(); // new action invalidates redo history
-    }
-
-    public void undo() {
-        if (!undoStack.isEmpty()) {
-            redoStack.push(createStateSnapshot());
-            GameState prev = undoStack.pop();
-            restoreState(prev);
-        }
-    }
-
-    public void redo() {
-        if (!redoStack.isEmpty()) {
-            undoStack.push(createStateSnapshot());
-            GameState next = redoStack.pop();
-            restoreState(next);
-        }
-    }
-
+    /**
+     * Creates a snapshot of the current game state for undo/redo functionality.
+     * @return GameState object containing complete game state
+     */
     public GameState createStateSnapshot() {
         Board boardCopy = board.copy();
         List<Player> playersCopy = new ArrayList<>();
@@ -164,6 +151,10 @@ public class GameModel {
         return new GameState(boardCopy, playersCopy, bagCopy, currentPlayerIndex, firstMove);
     }
 
+    /**
+     * Restores the game to a previous state (for undo/redo and load game).
+     * @param state The GameState to restore
+     */
     public void restoreState(GameState state) {
         this.board = state.board;
         this.players = state.players;

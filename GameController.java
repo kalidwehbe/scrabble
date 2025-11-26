@@ -1,5 +1,8 @@
-import java.util.*;
+import java.io.*;
 import java.util.Stack;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  * GameController handles user input and coordinates between the Model and View.
@@ -217,6 +220,118 @@ public class GameController {
             view.displayMessage("Redo performed.");
         } else {
             view.displayMessage("Nothing to redo.");
+        }
+    }
+
+    // -----------------------
+    // SAVE / LOAD METHODS
+    // -----------------------
+
+    /**
+     * Saves the current game state to a file.
+     * Opens a file chooser dialog for the user to specify the save location.
+     */
+    public void saveGame() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save Game");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Scrabble Save Files (*.sav)", "sav");
+        fileChooser.setFileFilter(filter);
+        fileChooser.setSelectedFile(new File("scrabble_game.sav"));
+
+        int userSelection = fileChooser.showSaveDialog(view);
+
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+            String filePath = fileToSave.getAbsolutePath();
+
+            // Ensure .sav extension
+            if (!filePath.endsWith(".sav")) {
+                filePath += ".sav";
+                fileToSave = new File(filePath);
+            }
+
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileToSave))) {
+                // Create a save state containing model and undo/redo stacks
+                SaveState saveState = new SaveState(model, undoStack, redoStack);
+                oos.writeObject(saveState);
+                view.displayMessage("Game saved successfully to: " + fileToSave.getName());
+                JOptionPane.showMessageDialog(view, "Game saved successfully!", "Save Game", JOptionPane.INFORMATION_MESSAGE);
+            } catch (IOException e) {
+                view.displayMessage("Error saving game: " + e.getMessage());
+                JOptionPane.showMessageDialog(view, "Error saving game: " + e.getMessage(), "Save Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Loads a game state from a file.
+     * Opens a file chooser dialog for the user to select a save file.
+     */
+    public void loadGame() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Load Game");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Scrabble Save Files (*.sav)", "sav");
+        fileChooser.setFileFilter(filter);
+
+        int userSelection = fileChooser.showOpenDialog(view);
+
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToLoad = fileChooser.getSelectedFile();
+
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileToLoad))) {
+                SaveState saveState = (SaveState) ois.readObject();
+
+                // Restore the model
+                GameModel loadedModel = saveState.model;
+
+                // Copy loaded model state to current model
+                model.restoreState(loadedModel.createStateSnapshot());
+
+                // Restore undo/redo stacks
+                undoStack.clear();
+                undoStack.addAll(saveState.undoStack);
+                redoStack.clear();
+                redoStack.addAll(saveState.redoStack);
+
+                // Re-register observer
+                loadedModel.addObserver(view);
+
+                // Update view
+                view.update(model.getBoard(), model.getPlayers(), model.getCurrentPlayer());
+                view.displayMessage("Game loaded successfully from: " + fileToLoad.getName());
+                JOptionPane.showMessageDialog(view, "Game loaded successfully!", "Load Game", JOptionPane.INFORMATION_MESSAGE);
+            } catch (FileNotFoundException e) {
+                view.displayMessage("File not found: " + e.getMessage());
+                JOptionPane.showMessageDialog(view, "File not found!", "Load Error", JOptionPane.ERROR_MESSAGE);
+            } catch (IOException e) {
+                view.displayMessage("Error loading game: " + e.getMessage());
+                JOptionPane.showMessageDialog(view, "Error loading game: " + e.getMessage(), "Load Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                view.displayMessage("Invalid save file format: " + e.getMessage());
+                JOptionPane.showMessageDialog(view, "Invalid save file format!", "Load Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Inner class to encapsulate the complete save state including model and undo/redo history.
+     */
+    private static class SaveState implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        GameModel model;
+        Stack<GameState> undoStack;
+        Stack<GameState> redoStack;
+
+        SaveState(GameModel model, Stack<GameState> undoStack, Stack<GameState> redoStack) {
+            this.model = model;
+            this.undoStack = new Stack<>();
+            this.undoStack.addAll(undoStack);
+            this.redoStack = new Stack<>();
+            this.redoStack.addAll(redoStack);
         }
     }
 }

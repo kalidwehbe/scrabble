@@ -92,10 +92,40 @@ public class GameViewGUI extends JFrame implements GameObserver {
     }
 
     // ----------------------------------------
-    // MENU BAR WITH UNDO / REDO
+    // MENU BAR WITH UNDO / REDO / SAVE / LOAD
     // ----------------------------------------
     private void createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
+
+        // File Menu
+        JMenu fileMenu = new JMenu("File");
+
+        JMenuItem saveItem = new JMenuItem("Save Game");
+        JMenuItem loadItem = new JMenuItem("Load Game");
+
+        // Save action
+        saveItem.addActionListener(e -> {
+            if (controller != null) {
+                controller.saveGame();
+            }
+        });
+
+        // Load action
+        loadItem.addActionListener(e -> {
+            if (controller != null) {
+                controller.loadGame();
+            }
+        });
+
+        // Keyboard shortcuts
+        saveItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
+        loadItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK));
+
+        fileMenu.add(saveItem);
+        fileMenu.add(loadItem);
+        menuBar.add(fileMenu);
+
+        // Edit Menu
         JMenu editMenu = new JMenu("Edit");
 
         JMenuItem undoItem = new JMenuItem("Undo");
@@ -122,6 +152,7 @@ public class GameViewGUI extends JFrame implements GameObserver {
         editMenu.add(undoItem);
         editMenu.add(redoItem);
         menuBar.add(editMenu);
+
         setJMenuBar(menuBar);
     }
 

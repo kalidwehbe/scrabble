@@ -24,6 +24,16 @@ public class Square {
     public void setBonus(Bonus bonus) { this.bonus = bonus; }
     public char getLetter() { return getTile().getLetter();
     }
+    public Square copy() {
+        Square s = new Square();
+        s.setBonus(this.getBonus());
+
+        if (this.hasTile()) {
+            s.setTile(this.getTile().copy());
+        }
+
+        return s;
+    }
 
     @Override
     public String toString() {
@@ -37,4 +47,3 @@ public class Square {
         }
     }
 }
-

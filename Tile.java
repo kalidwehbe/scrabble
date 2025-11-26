@@ -85,6 +85,10 @@ public class Tile {
      */
     public boolean isBlank() { return blank; }
 
+    public Tile copy() {
+        return new Tile(this.letter, this.score, this.blank);
+    }
+
     /**
      * Returns a string representation of the tile (just the letter).
      *

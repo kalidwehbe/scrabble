@@ -37,9 +37,27 @@ public class Main {
             }
 
         }
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("Select a board:");
+        System.out.println("1) Standard");
+        System.out.println("2) Diagonal");
+        System.out.println("3) Corner Star");
+        int choice = sc.nextInt();
+
+        String boardFile = "";
+        switch (choice) {
+            case 1 -> boardFile = "StandardBoard.xml";
+            case 2 -> boardFile = "DiagonalBoard.xml";
+            case 3 -> boardFile = "CornerStarBoard.xml";
+            default -> {
+                System.out.println("Invalid choice, loading Standard board by default.");
+                boardFile = "StandardBoard.xml";
+            }
+        }
 
         // 1. Create model without players first
-        GameModel model = new GameModel(new ArrayList<>(), "dictionary.txt");
+        GameModel model = new GameModel(boardFile, new ArrayList<>(), "dictionary.txt");
 
         // 2. Add the actual Player and AIPlayer instances into the model
         for (Player p : players) {

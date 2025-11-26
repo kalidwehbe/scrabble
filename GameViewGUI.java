@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.util.List;
 
 public class GameViewGUI extends JFrame implements GameObserver {
@@ -19,6 +18,8 @@ public class GameViewGUI extends JFrame implements GameObserver {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 850);
         setLayout(new BorderLayout(10, 10));
+
+        createMenuBar(); // <-- New menu bar for Undo/Redo
 
         // -------------------------------
         // CENTER PANEL: 2x2 grid
@@ -77,20 +78,51 @@ public class GameViewGUI extends JFrame implements GameObserver {
         commandInput.setFont(new Font("Monospaced", Font.PLAIN, 16));
         bottomPanel.add(commandInput, BorderLayout.SOUTH);
 
-        commandInput.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (controller != null) {
-                    String cmd = commandInput.getText().trim();
-                    controller.handleCommand(cmd);
-                    commandInput.setText("");
-                }
+        commandInput.addActionListener(e -> {
+            if (controller != null) {
+                String cmd = commandInput.getText().trim();
+                controller.handleCommand(cmd);
+                commandInput.setText("");
             }
         });
 
         add(bottomPanel, BorderLayout.SOUTH);
 
         setVisible(true);
+    }
+
+    // ----------------------------------------
+    // MENU BAR WITH UNDO / REDO
+    // ----------------------------------------
+    private void createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu editMenu = new JMenu("Edit");
+
+        JMenuItem undoItem = new JMenuItem("Undo");
+        JMenuItem redoItem = new JMenuItem("Redo");
+
+        // Undo action
+        undoItem.addActionListener(e -> {
+            if (controller != null) {
+                controller.undoMove();
+            }
+        });
+
+        // Redo action
+        redoItem.addActionListener(e -> {
+            if (controller != null) {
+                controller.redoMove();
+            }
+        });
+
+        // Keyboard shortcuts
+        undoItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK));
+        redoItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK));
+
+        editMenu.add(undoItem);
+        editMenu.add(redoItem);
+        menuBar.add(editMenu);
+        setJMenuBar(menuBar);
     }
 
     // ----------------------------------------
@@ -169,7 +201,7 @@ public class GameViewGUI extends JFrame implements GameObserver {
                 "A=1  B=3  C=3  D=2  E=1  F=4  G=2  H=4  I=1  J=8  " +
                 "K=5  L=1  M=3  N=1  O=1  P=3  Q=10 R=1  S=1  T=1  " +
                 "U=1  V=4  W=4  X=8  Y=4  Z=10" + "\n 2=DL 3=TL d=DW t=TW";
-
     }
 }
+
 

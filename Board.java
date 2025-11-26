@@ -1,45 +1,59 @@
+import java.io.File;
 import java.util.*;
+import javax.xml.parsers.*;
+import org.w3c.dom.*;
 
 public class Board {
+    private String name;
     private static final int SIZE = 15;
     private final Square[][] grid;
+    private Map<String, List<int[]>> bonuses;
+    private String boardFile;
 
-    public Board() {
+    public Board(String boardFile) {
+        this.boardFile = boardFile;
         grid = new Square[SIZE][SIZE];
         for (int i = 0; i < SIZE; i++)
             for (int j = 0; j < SIZE; j++)
                 grid[i][j] = new Square();
-
-        setupPremiumSquares();
+        bonuses = new HashMap<>();
+        loadBoardFromXML(boardFile);
+        applyBonuses();
     }
 
-    private void setupPremiumSquares() {
-        // Triple Word (TW) positions
-        int[] tw = {0, 14};
-        for (int r : tw)
-            for (int c : tw)
-                grid[r][c].setBonus(Square.Bonus.TW);
-        grid[7][0].setBonus(Square.Bonus.TW);
-        grid[0][7].setBonus(Square.Bonus.TW);
-        grid[7][14].setBonus(Square.Bonus.TW);
-        grid[14][7].setBonus(Square.Bonus.TW);
+    // Load board and bonuses from XML file
+    private void loadBoardFromXML(String fileName) {
+        try {
+            File file = new File(fileName);
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(file);
+            doc.getDocumentElement().normalize();
 
+            Element boardElement = doc.getDocumentElement();
+            name = boardElement.getAttribute("name");
 
-        // Double Word (DW) positions (including center star)
-        int[][] dw = {{1,1},{2,2},{3,3},{4,4},{13,1},{12,2},{11,3},{10,4},
-                {1,13},{2,12},{3,11},{4,10},{13,13},{12,12},{11,11},{10,10},
-                {7,7}}; // Center star is DW in standard Scrabble
-        for (int[] pos : dw) grid[pos[0]][pos[1]].setBonus(Square.Bonus.DW);
+            NodeList bonusList = boardElement.getElementsByTagName("bonus");
+            for (int i = 0; i < bonusList.getLength(); i++) {
+                Element bonus = (Element) bonusList.item(i);
+                String type = bonus.getAttribute("type");
+                int row = Integer.parseInt(bonus.getAttribute("row"));
+                int col = Integer.parseInt(bonus.getAttribute("col"));
+                bonuses.computeIfAbsent(type, k -> new ArrayList<>()).add(new int[]{row, col});
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-        // Double Letter (DL) positions
-        int[][] dl = {{0,3},{0,11},{2,6},{2,8},{3,0},{3,7},{3,14},{6,2},{6,6},{6,8},{6,12},
-                {7,3},{7,11},{8,2},{8,6},{8,8},{8,12},{11,0},{11,7},{11,14},{12,6},{12,8},
-                {14,3},{14,11}};
-        for (int[] pos : dl) grid[pos[0]][pos[1]].setBonus(Square.Bonus.DL);
-
-        // Triple Letter (TL) positions
-        int[][] tl = {{1,5},{1,9},{5,1},{5,5},{5,9},{5,13},{9,1},{9,5},{9,9},{9,13},{13,5},{13,9}};
-        for (int[] pos : tl) grid[pos[0]][pos[1]].setBonus(Square.Bonus.TL);
+    private void applyBonuses() {
+        for (Map.Entry<String, List<int[]>> entry : bonuses.entrySet()) {
+            String type = entry.getKey();
+            for (int[] pos : entry.getValue()) {
+                int row = pos[0], col = pos[1];
+                grid[row][col].setBonus(Square.Bonus.valueOf(type));
+            }
+        }
     }
 
     public boolean squareHasTile(int row, int col) {
@@ -119,4 +133,27 @@ public class Board {
         }
         return ' '; // or any placeholder for empty
     }
-}
+
+    public Board copy() {
+        Board b = new Board(this.boardFile);
+
+        // deep copy squares
+        for (int r = 0; r < SIZE; r++) {
+            for (int c = 0; c < SIZE; c++) {
+                b.grid[r][c] = this.grid[r][c].copy();
+            }
+        }
+
+        // deep copy bonuses map
+        b.bonuses = new HashMap<>();
+        for (String key : this.bonuses.keySet()) {
+            List<int[]> newList = new ArrayList<>();
+            for (int[] pos : this.bonuses.get(key)) {
+                newList.add(new int[]{pos[0], pos[1]});
+            }
+            b.bonuses.put(key, newList);
+        }
+
+        return b;
+    }
+

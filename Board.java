@@ -1,9 +1,11 @@
 import java.io.File;
+import java.io.Serializable;
 import java.util.*;
 import javax.xml.parsers.*;
 import org.w3c.dom.*;
 
-public class Board {
+public class Board implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String name;
     private static final int SIZE = 15;
     private final Square[][] grid;
@@ -156,4 +158,4 @@ public class Board {
 
         return b;
     }
-
+}

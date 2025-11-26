@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<board name="Corner Star Board">
+    <!-- Triple Word Score (TW) - Star pattern from corners -->
+    <bonus type="TW" row="0" col="0"/>
+    <bonus type="TW" row="0" col="7"/>
+    <bonus type="TW" row="0" col="14"/>
+    <bonus type="TW" row="7" col="0"/>
+    <bonus type="TW" row="7" col="7"/>
+    <bonus type="TW" row="7" col="14"/>
+    <bonus type="TW" row="14" col="0"/>
+    <bonus type="TW" row="14" col="7"/>
+    <bonus type="TW" row="14" col="14"/>
+
+    <!-- Double Word Score (DW) - Star arms -->
+    <bonus type="DW" row="2" col="2"/>
+    <bonus type="DW" row="2" col="7"/>
+    <bonus type="DW" row="2" col="12"/>
+    <bonus type="DW" row="7" col="2"/>
+    <bonus type="DW" row="7" col="12"/>
+    <bonus type="DW" row="12" col="2"/>
+    <bonus type="DW" row="12" col="7"/>
+    <bonus type="DW" row="12" col="12"/>
+    <bonus type="DW" row="4" col="4"/>
+    <bonus type="DW" row="4" col="10"/>
+    <bonus type="DW" row="10" col="4"/>
+    <bonus type="DW" row="10" col="10"/>
+
+    <!-- Triple Letter Score (TL) - Inner star points -->
+    <bonus type="TL" row="1" col="1"/>
+    <bonus type="TL" row="1" col="7"/>
+    <bonus type="TL" row="1" col="13"/>
+    <bonus type="TL" row="7" col="1"/>
+    <bonus type="TL" row="7" col="13"/>
+    <bonus type="TL" row="13" col="1"/>
+    <bonus type="TL" row="13" col="7"/>
+    <bonus type="TL" row="13" col="13"/>
+    <bonus type="TL" row="3" col="3"/>
+    <bonus type="TL" row="3" col="11"/>
+    <bonus type="TL" row="11" col="3"/>
+    <bonus type="TL" row="11" col="11"/>
+
+    <!-- Double Letter Score (DL) - Radial pattern -->
+    <bonus type="DL" row="0" col="3"/>
+    <bonus type="DL" row="0" col="11"/>
+    <bonus type="DL" row="3" col="0"/>
+    <bonus type="DL" row="3" col="7"/>
+    <bonus type="DL" row="3" col="14"/>
+    <bonus type="DL" row="5" col="5"/>
+    <bonus type="DL" row="5" col="7"/>
+    <bonus type="DL" row="5" col="9"/>
+    <bonus type="DL" row="7" col="3"/>
+    <bonus type="DL" row="7" col="5"/>
+    <bonus type="DL" row="7" col="9"/>
+    <bonus type="DL" row="7" col="11"/>
+    <bonus type="DL" row="9" col="5"/>
+    <bonus type="DL" row="9" col="7"/>
+    <bonus type="DL" row="9" col="9"/>
+    <bonus type="DL" row="11" col="0"/>
+    <bonus type="DL" row="11" col="7"/>
+    <bonus type="DL" row="11" col="14"/>
+    <bonus type="DL" row="14" col="3"/>
+    <bonus type="DL" row="14" col="11"/>
+</board>

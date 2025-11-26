@@ -1,11 +1,20 @@
+import java.util.*;
+import java.util.Stack;
+
 /**
  * GameController handles user input and coordinates between the Model and View.
- * It processes commands like PLACE, SWAP, PASS, and EXIT, and manages AI turns.
+ * It processes commands like PLACE, SWAP, PASS, EXIT, and manages Undo/Redo.
  */
 public class GameController {
 
     private final GameModel model;
     private final GameViewGUI view;
+
+    // -----------------------
+    // UNDO / REDO STACKS
+    // -----------------------
+    private final Stack<GameState> undoStack = new Stack<>();
+    private final Stack<GameState> redoStack = new Stack<>();
 
     public GameController(GameModel model, GameViewGUI view) {
         this.model = model;
@@ -16,10 +25,16 @@ public class GameController {
         maybeDoAITurn();
     }
 
+    // -----------------------
+    // Column letter to index
+    // -----------------------
     private int colLetterToIndex(String col) {
         return col.toUpperCase().charAt(0) - 'A';
     }
 
+    // -----------------------
+    // Handle user commands
+    // -----------------------
     public void handleCommand(String input) {
         Player current = model.getCurrentPlayer();
         input = input.trim().toUpperCase();
@@ -28,6 +43,7 @@ public class GameController {
         // PASS
         // -----------------------
         if (input.equals("PASS")) {
+            saveState(); // <-- save for undo
             model.passTurn();
             maybeDoAITurn();
             return;
@@ -53,6 +69,7 @@ public class GameController {
             }
             String tilesToSwap = parts[1];
             if (current.swapTiles(tilesToSwap, model.getBag())) {
+                saveState(); // <-- save for undo
                 view.displayMessage("Tiles swapped successfully.");
                 model.passTurn();
                 maybeDoAITurn();
@@ -67,8 +84,10 @@ public class GameController {
         // -----------------------
         if (parts[0].equals("PLACE")) {
             Player currentPlayer = model.getCurrentPlayer();
+            boolean firstMove = model.isFirstMove();
 
-            if (model.isFirstMove()) {
+            // First move
+            if (firstMove) {
                 if (parts.length != 3 && parts.length != 4) {
                     view.displayMessage("First move: PLACE WORD DIRECTION (H/V) [BLANKS]");
                     return;
@@ -86,8 +105,10 @@ public class GameController {
                 boolean success;
                 if (parts.length == 4) {
                     String blanks = parts[3];
+                    saveState(); // <-- save for undo
                     success = model.placeWordWithBlanks(word, 7, 7, horizontal, blanks);
                 } else {
+                    saveState(); // <-- save for undo
                     success = model.placeWord(word, 7, 7, horizontal);
                 }
 
@@ -96,6 +117,7 @@ public class GameController {
                 return;
             }
 
+            // Regular moves
             if (parts.length != 5 && parts.length != 6) {
                 view.displayMessage("Invalid PLACE command! Use: PLACE WORD ROW COL DIRECTION [BLANKS]");
                 return;
@@ -137,8 +159,13 @@ public class GameController {
             if (parts.length == 6) blanks = parts[5];
 
             boolean placed;
-            if (!blanks.isEmpty()) placed = model.placeWordWithBlanks(word, row, col, horizontal, blanks);
-            else placed = model.placeWord(word, row, col, horizontal);
+            if (!blanks.isEmpty()) {
+                saveState(); // <-- save for undo
+                placed = model.placeWordWithBlanks(word, row, col, horizontal, blanks);
+            } else {
+                saveState(); // <-- save for undo
+                placed = model.placeWord(word, row, col, horizontal);
+            }
 
             if (!placed) {
                 String lastError = currentPlayer.getLastError();
@@ -149,18 +176,48 @@ public class GameController {
         }
     }
 
-    /**
-     * If the current player is an AI, make its move automatically.
-     */
+    // -----------------------
+    // AI moves
+    // -----------------------
     private void maybeDoAITurn() {
         while (model.getCurrentPlayer() instanceof AIPlayer) {
             AIPlayer ai = (AIPlayer) model.getCurrentPlayer();
             boolean moveMade = ai.makeMove(model);
-            if (!moveMade) {
-                model.passTurn();
-            }
+            if (!moveMade) model.passTurn();
             model.setFirstMoveDone();
         }
     }
 
+    // -----------------------
+    // UNDO / REDO METHODS
+    // -----------------------
+    private void saveState() {
+        undoStack.push(model.createStateSnapshot());
+        redoStack.clear(); // clear redo after new move
+    }
+
+    public void undoMove() {
+        if (!undoStack.isEmpty()) {
+            GameState lastState = undoStack.pop();
+            redoStack.push(model.createStateSnapshot());
+            model.restoreState(lastState);
+            view.update(model.getBoard(), model.getPlayers(), model.getCurrentPlayer());
+            view.displayMessage("Undo performed.");
+        } else {
+            view.displayMessage("Nothing to undo.");
+        }
+    }
+
+    public void redoMove() {
+        if (!redoStack.isEmpty()) {
+            GameState nextState = redoStack.pop();
+            undoStack.push(model.createStateSnapshot());
+            model.restoreState(nextState);
+            view.update(model.getBoard(), model.getPlayers(), model.getCurrentPlayer());
+            view.displayMessage("Redo performed.");
+        } else {
+            view.displayMessage("Nothing to redo.");
+        }
+    }
 }
+

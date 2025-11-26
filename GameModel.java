@@ -35,8 +35,8 @@ public class GameModel {
      * @param names List of player names
      * @param dictionaryFile Path to dictionary file for valid words
      */
-    public GameModel(List<String> names, String dictionaryFile) {
-        board = new Board();
+    public GameModel(String boardFile, List<String> names, String dictionaryFile) {
+        board = new Board(boardFile);
         players = new ArrayList<>();
         observers = new ArrayList<>();
         bag = createTileBag();
@@ -96,6 +96,12 @@ public class GameModel {
         return players.get(currentPlayerIndex);
     }
 
+    public boolean isFirstMove() { return firstMove; }
+    public void setFirstMoveDone() { firstMove = false; }
+    public Board getBoard() {
+        return board;
+    }
+
     /**
      * Returns the tile bag.
      *
@@ -123,6 +129,50 @@ public class GameModel {
             obs.update(board, players, current);
         }
     }
+
+
+    private Stack<GameState> undoStack;
+    private Stack<GameState> redoStack;
+
+    public void saveStateForUndo() {
+        undoStack.push(createStateSnapshot());
+        redoStack.clear(); // new action invalidates redo history
+    }
+
+    public void undo() {
+        if (!undoStack.isEmpty()) {
+            redoStack.push(createStateSnapshot());
+            GameState prev = undoStack.pop();
+            restoreState(prev);
+        }
+    }
+
+    public void redo() {
+        if (!redoStack.isEmpty()) {
+            undoStack.push(createStateSnapshot());
+            GameState next = redoStack.pop();
+            restoreState(next);
+        }
+    }
+
+    public GameState createStateSnapshot() {
+        Board boardCopy = board.copy();
+        List<Player> playersCopy = new ArrayList<>();
+        for (Player p : players) playersCopy.add(p.copy());
+        Queue<Tile> bagCopy = new LinkedList<>();
+        for (Tile t : bag) bagCopy.add(t.copy());
+        return new GameState(boardCopy, playersCopy, bagCopy, currentPlayerIndex, firstMove);
+    }
+
+    public void restoreState(GameState state) {
+        this.board = state.board;
+        this.players = state.players;
+        this.bag = state.bag;
+        this.currentPlayerIndex = state.currentPlayerIndex;
+        this.firstMove = state.firstMove;
+        notifyObservers();
+    }
+
 
     /**
      * Simple helper to compute score for a word without premium squares.
@@ -318,11 +368,7 @@ public class GameModel {
         notifyObservers();
     }
 
-    public boolean isFirstMove() { return firstMove; }
-    public void setFirstMoveDone() { firstMove = false; }
-    public Board getBoard() {
-        return board;
-    }
+
 
     public Dictionary getDictionary() {
         return dictionary;
@@ -335,4 +381,6 @@ public class GameModel {
     public void addPlayer(Player p) {
         players.add(p);
     }
+
+
 }

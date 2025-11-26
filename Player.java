@@ -96,4 +96,14 @@ public class Player {
         }
     }
 
+    public Player copy() {
+        Player p = new Player(this.name);
+        p.score = this.score;
+        for (Tile t : this.rack) {
+            p.rack.add(t.copy());
+        }
+        return p;
+    }
+
+
 }

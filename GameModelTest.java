@@ -36,7 +36,7 @@ public class GameModelTest {
     @Before
     public void setUp() {
         playerNames = Arrays.asList("Alice", "Bob");
-        model = new GameModel(playerNames, "dictionary.txt");
+        model = new GameModel("StandardBoard.xml", playerNames, "dictionary.txt");
         observer = new TestObserver();
         model.addObserver(observer);
         model.start(); // Initialize the game
@@ -340,7 +340,7 @@ public class GameModelTest {
     @Test
     public void testAIPlayerMakesLegalMove() {
         // Create a model with an AI player
-        GameModel aiModel = new GameModel(new ArrayList<>(), "dictionary.txt");
+        GameModel aiModel = new GameModel("StandardBoard.xml", new ArrayList<>(), "dictionary.txt");
         AIPlayer ai = new AIPlayer("AI");
         ai.getRack().clear();
         ai.getRack().add(new Tile('C', 3));
@@ -367,7 +367,7 @@ public class GameModelTest {
      */
     @Test
     public void testAIPlayerPassesWhenNoMoves() {
-        GameModel aiModel = new GameModel(new ArrayList<>(), "dictionary.txt");
+        GameModel aiModel = new GameModel("StandardBoard.xml", new ArrayList<>(), "dictionary.txt");
         AIPlayer ai = new AIPlayer("AI");
         ai.getRack().clear();
         // Give AI an empty rack - no tiles means no moves possible
@@ -384,7 +384,7 @@ public class GameModelTest {
      */
     @Test
     public void testAIPlayerSelectsHighScoringMove() {
-        GameModel aiModel = new GameModel(new ArrayList<>(), "dictionary.txt");
+        GameModel aiModel = new GameModel("StandardBoard.xml", new ArrayList<>(), "dictionary.txt");
         AIPlayer ai = new AIPlayer("AI");
         ai.getRack().clear();
         // Give tiles that can form multiple words
@@ -408,7 +408,7 @@ public class GameModelTest {
      */
     @Test
     public void testAIPlayerUsesBlankTiles() {
-        GameModel aiModel = new GameModel(new ArrayList<>(), "dictionary.txt");
+        GameModel aiModel = new GameModel("StandardBoard.xml", new ArrayList<>(), "dictionary.txt");
         AIPlayer ai = new AIPlayer("AI");
         ai.getRack().clear();
         ai.getRack().add(new Tile('C', 3));
@@ -423,6 +423,377 @@ public class GameModelTest {
         boolean moveMade = ai.makeMove(aiModel);
         // AI should be able to form words using the blank
         assertTrue(moveMade || ai.getScore() >= 0); // AI should be able to use blank tiles
+    }
+
+    // ==========================================
+    // UNDO/REDO TESTS (Milestone 4)
+    // ==========================================
+
+    /**
+     * Tests that undo functionality correctly reverts a placed word.
+     */
+    @Test
+    public void testUndoPlacedWord() {
+        Player player = model.getCurrentPlayer();
+        player.getRack().clear();
+        player.getRack().add(new Tile('C', 3));
+        player.getRack().add(new Tile('A', 1));
+        player.getRack().add(new Tile('T', 1));
+
+        // Create snapshot before move
+        GameState stateBefore = model.createStateSnapshot();
+        int scoreBefore = player.getScore();
+
+        // Place word
+        model.placeWord("CAT", 7, 7, true);
+
+        // Verify word was placed
+        assertTrue(player.getScore() > scoreBefore);
+
+        // Undo the move
+        model.restoreState(stateBefore);
+
+        // Verify state restored
+        assertEquals(scoreBefore, model.getCurrentPlayer().getScore());
+    }
+
+    /**
+     * Tests that redo functionality correctly re-applies an undone move.
+     */
+    @Test
+    public void testRedoPlacedWord() {
+        Player player = model.getCurrentPlayer();
+        player.getRack().clear();
+        player.getRack().add(new Tile('C', 3));
+        player.getRack().add(new Tile('A', 1));
+        player.getRack().add(new Tile('T', 1));
+
+        GameState stateBefore = model.createStateSnapshot();
+        model.placeWord("CAT", 7, 7, true);
+        GameState stateAfter = model.createStateSnapshot();
+
+        // Undo
+        model.restoreState(stateBefore);
+        assertEquals(0, model.getPlayers().get(0).getScore());
+
+        // Redo
+        model.restoreState(stateAfter);
+        assertTrue(model.getPlayers().get(0).getScore() > 0);
+    }
+
+    /**
+     * Tests multiple undo operations in sequence.
+     */
+    @Test
+    public void testMultipleUndo() {
+        Player p1 = model.getCurrentPlayer();
+        p1.getRack().clear();
+        p1.getRack().add(new Tile('C', 3));
+        p1.getRack().add(new Tile('A', 1));
+        p1.getRack().add(new Tile('T', 1));
+
+        // Save initial state
+        GameState initialState = model.createStateSnapshot();
+
+        // First move
+        model.placeWord("CAT", 7, 7, true);
+        GameState afterMove1 = model.createStateSnapshot();
+
+        // Second move (pass turn)
+        model.passTurn();
+
+        // Undo second move
+        model.restoreState(afterMove1);
+        assertEquals("Bob", model.getCurrentPlayer().getName());
+
+        // Undo first move
+        model.restoreState(initialState);
+        assertEquals(0, model.getPlayers().get(0).getScore());
+    }
+
+    /**
+     * Tests that game state snapshot preserves all game data correctly.
+     */
+    @Test
+    public void testGameStateSnapshotPreservesData() {
+        Player player = model.getCurrentPlayer();
+        String playerName = player.getName();
+        int initialScore = player.getScore();
+
+        GameState snapshot = model.createStateSnapshot();
+
+        // Verify snapshot preserves player data
+        assertEquals(playerName, snapshot.players.get(0).getName());
+        assertEquals(initialScore, snapshot.players.get(0).getScore());
+        assertEquals(model.getCurrentPlayer().getRack().size(), snapshot.players.get(0).getRack().size());
+        assertEquals(0, snapshot.currentPlayerIndex);
+    }
+
+    /**
+     * Tests undo with tile swapping.
+     */
+    @Test
+    public void testUndoSwapTiles() {
+        Player player = model.getCurrentPlayer();
+        GameState stateBefore = model.createStateSnapshot();
+
+        String toSwap = "" + player.getRack().get(0).getLetter();
+        player.swapTiles(toSwap, model.getBag());
+
+        // Undo swap
+        model.restoreState(stateBefore);
+
+        // Verify rack restored (compare sizes)
+        assertEquals(7, model.getCurrentPlayer().getRack().size());
+    }
+
+    /**
+     * Tests multiple redo operations.
+     */
+    @Test
+    public void testMultipleRedo() {
+        Player player = model.getCurrentPlayer();
+        player.getRack().clear();
+        player.getRack().add(new Tile('C', 3));
+        player.getRack().add(new Tile('A', 1));
+        player.getRack().add(new Tile('T', 1));
+
+        GameState s0 = model.createStateSnapshot();
+        model.placeWord("CAT", 7, 7, true);
+        GameState s1 = model.createStateSnapshot();
+        model.passTurn();
+        GameState s2 = model.createStateSnapshot();
+
+        // Undo twice
+        model.restoreState(s1);
+        model.restoreState(s0);
+
+        // Redo twice
+        model.restoreState(s1);
+        assertTrue(model.getPlayers().get(0).getScore() > 0);
+
+        model.restoreState(s2);
+        assertEquals("Alice", model.getCurrentPlayer().getName());
+    }
+
+    // ==========================================
+    // SERIALIZATION/DESERIALIZATION TESTS (Milestone 4)
+    // ==========================================
+
+    /**
+     * Tests that GameModel can be serialized without errors.
+     */
+    @Test
+    public void testSerializeGameModel() {
+        try {
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            java.io.ObjectOutputStream oos = new java.io.ObjectOutputStream(baos);
+            oos.writeObject(model);
+            oos.close();
+
+            byte[] serializedData = baos.toByteArray();
+            assertTrue(serializedData.length > 0);
+        } catch (Exception e) {
+            fail("Serialization failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Tests that GameModel can be deserialized correctly.
+     */
+    @Test
+    public void testDeserializeGameModel() {
+        try {
+            // Serialize
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            java.io.ObjectOutputStream oos = new java.io.ObjectOutputStream(baos);
+            oos.writeObject(model);
+            oos.close();
+
+            // Deserialize
+            java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(baos.toByteArray());
+            java.io.ObjectInputStream ois = new java.io.ObjectInputStream(bais);
+            GameModel deserializedModel = (GameModel) ois.readObject();
+            ois.close();
+
+            // Verify deserialized model
+            assertNotNull(deserializedModel);
+            assertEquals(model.getPlayers().size(), deserializedModel.getPlayers().size());
+        } catch (Exception e) {
+            fail("Deserialization failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Tests that serialization preserves player scores and names.
+     */
+    @Test
+    public void testSerializationPreservesPlayerData() {
+        Player player = model.getCurrentPlayer();
+        player.getRack().clear();
+        player.getRack().add(new Tile('C', 3));
+        player.getRack().add(new Tile('A', 1));
+        player.getRack().add(new Tile('T', 1));
+
+        model.placeWord("CAT", 7, 7, true);
+        int score = model.getPlayers().get(0).getScore();
+        String name = model.getPlayers().get(0).getName();
+
+        try {
+            // Serialize
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            java.io.ObjectOutputStream oos = new java.io.ObjectOutputStream(baos);
+            oos.writeObject(model);
+            oos.close();
+
+            // Deserialize
+            java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(baos.toByteArray());
+            java.io.ObjectInputStream ois = new java.io.ObjectInputStream(bais);
+            GameModel loadedModel = (GameModel) ois.readObject();
+            ois.close();
+
+            // Verify data preserved
+            assertEquals(name, loadedModel.getPlayers().get(0).getName());
+            assertEquals(score, loadedModel.getPlayers().get(0).getScore());
+        } catch (Exception e) {
+            fail("Serialization test failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Tests that serialization preserves board state.
+     */
+    @Test
+    public void testSerializationPreservesBoardState() {
+        Player player = model.getCurrentPlayer();
+        player.getRack().clear();
+        player.getRack().add(new Tile('C', 3));
+        player.getRack().add(new Tile('A', 1));
+        player.getRack().add(new Tile('T', 1));
+
+        model.placeWord("CAT", 7, 7, true);
+
+        try {
+            // Serialize
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            java.io.ObjectOutputStream oos = new java.io.ObjectOutputStream(baos);
+            oos.writeObject(model);
+            oos.close();
+
+            // Deserialize
+            java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(baos.toByteArray());
+            java.io.ObjectInputStream ois = new java.io.ObjectInputStream(bais);
+            GameModel loadedModel = (GameModel) ois.readObject();
+            ois.close();
+
+            // Verify board state
+            assertEquals('C', loadedModel.getBoard().getTileLetter(7, 7));
+            assertEquals('A', loadedModel.getBoard().getTileLetter(7, 8));
+            assertEquals('T', loadedModel.getBoard().getTileLetter(7, 9));
+        } catch (Exception e) {
+            fail("Board state serialization failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Tests that GameState can be serialized.
+     */
+    @Test
+    public void testSerializeGameState() {
+        GameState state = model.createStateSnapshot();
+
+        try {
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            java.io.ObjectOutputStream oos = new java.io.ObjectOutputStream(baos);
+            oos.writeObject(state);
+            oos.close();
+
+            byte[] serializedData = baos.toByteArray();
+            assertTrue(serializedData.length > 0);
+        } catch (Exception e) {
+            fail("GameState serialization failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Tests error handling when deserializing corrupted data.
+     */
+    @Test
+    public void testDeserializationErrorHandling() {
+        try {
+            byte[] corruptedData = new byte[]{1, 2, 3, 4, 5};
+            java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(corruptedData);
+            java.io.ObjectInputStream ois = new java.io.ObjectInputStream(bais);
+
+            try {
+                ois.readObject();
+                fail("Should have thrown an exception for corrupted data");
+            } catch (Exception e) {
+                // Expected exception for corrupted data
+                assertTrue(e instanceof java.io.StreamCorruptedException ||
+                          e instanceof java.io.EOFException);
+            }
+            ois.close();
+        } catch (Exception e) {
+            // Expected - corrupted data should cause errors
+            assertTrue(true);
+        }
+    }
+
+    /**
+     * Tests that serialization works after multiple game moves.
+     */
+    @Test
+    public void testSerializationAfterMultipleMoves() {
+        Player p1 = model.getCurrentPlayer();
+        p1.getRack().clear();
+        p1.getRack().add(new Tile('C', 3));
+        p1.getRack().add(new Tile('A', 1));
+        p1.getRack().add(new Tile('T', 1));
+
+        model.placeWord("CAT", 7, 7, true);
+        model.passTurn();
+
+        try {
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            java.io.ObjectOutputStream oos = new java.io.ObjectOutputStream(baos);
+            oos.writeObject(model);
+            oos.close();
+
+            java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(baos.toByteArray());
+            java.io.ObjectInputStream ois = new java.io.ObjectInputStream(bais);
+            GameModel loadedModel = (GameModel) ois.readObject();
+            ois.close();
+
+            // Verify turn advanced
+            assertEquals("Alice", loadedModel.getCurrentPlayer().getName());
+        } catch (Exception e) {
+            fail("Multi-move serialization failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Tests serialization preserves tile bag state.
+     */
+    @Test
+    public void testSerializationPreservesTileBag() {
+        int bagSizeBefore = model.getBag().size();
+
+        try {
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            java.io.ObjectOutputStream oos = new java.io.ObjectOutputStream(baos);
+            oos.writeObject(model);
+            oos.close();
+
+            java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(baos.toByteArray());
+            java.io.ObjectInputStream ois = new java.io.ObjectInputStream(bais);
+            GameModel loadedModel = (GameModel) ois.readObject();
+            ois.close();
+
+            assertEquals(bagSizeBefore, loadedModel.getBag().size());
+        } catch (Exception e) {
+            fail("Tile bag serialization failed: " + e.getMessage());
+        }
     }
 }
 

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<board name="Standard Scrabble Board">
+    <!-- Triple Word Score (TW) - Corners -->
+    <bonus type="TW" row="0" col="0"/>
+    <bonus type="TW" row="0" col="7"/>
+    <bonus type="TW" row="0" col="14"/>
+    <bonus type="TW" row="7" col="0"/>
+    <bonus type="TW" row="7" col="14"/>
+    <bonus type="TW" row="14" col="0"/>
+    <bonus type="TW" row="14" col="7"/>
+    <bonus type="TW" row="14" col="14"/>
+
+    <!-- Double Word Score (DW) -->
+    <bonus type="DW" row="1" col="1"/>
+    <bonus type="DW" row="2" col="2"/>
+    <bonus type="DW" row="3" col="3"/>
+    <bonus type="DW" row="4" col="4"/>
+    <bonus type="DW" row="7" col="7"/>
+    <bonus type="DW" row="10" col="10"/>
+    <bonus type="DW" row="11" col="11"/>
+    <bonus type="DW" row="12" col="12"/>
+    <bonus type="DW" row="13" col="13"/>
+    <bonus type="DW" row="1" col="13"/>
+    <bonus type="DW" row="2" col="12"/>
+    <bonus type="DW" row="3" col="11"/>
+    <bonus type="DW" row="4" col="10"/>
+    <bonus type="DW" row="10" col="4"/>
+    <bonus type="DW" row="11" col="3"/>
+    <bonus type="DW" row="12" col="2"/>
+    <bonus type="DW" row="13" col="1"/>
+
+    <!-- Triple Letter Score (TL) -->
+    <bonus type="TL" row="1" col="5"/>
+    <bonus type="TL" row="1" col="9"/>
+    <bonus type="TL" row="5" col="1"/>
+    <bonus type="TL" row="5" col="5"/>
+    <bonus type="TL" row="5" col="9"/>
+    <bonus type="TL" row="5" col="13"/>
+    <bonus type="TL" row="9" col="1"/>
+    <bonus type="TL" row="9" col="5"/>
+    <bonus type="TL" row="9" col="9"/>
+    <bonus type="TL" row="9" col="13"/>
+    <bonus type="TL" row="13" col="5"/>
+    <bonus type="TL" row="13" col="9"/>
+
+    <!-- Double Letter Score (DL) -->
+    <bonus type="DL" row="0" col="3"/>
+    <bonus type="DL" row="0" col="11"/>
+    <bonus type="DL" row="2" col="6"/>
+    <bonus type="DL" row="2" col="8"/>
+    <bonus type="DL" row="3" col="0"/>
+    <bonus type="DL" row="3" col="7"/>
+    <bonus type="DL" row="3" col="14"/>
+    <bonus type="DL" row="6" col="2"/>
+    <bonus type="DL" row="6" col="6"/>
+    <bonus type="DL" row="6" col="8"/>
+    <bonus type="DL" row="6" col="12"/>
+    <bonus type="DL" row="7" col="3"/>
+    <bonus type="DL" row="7" col="11"/>
+    <bonus type="DL" row="8" col="2"/>
+    <bonus type="DL" row="8" col="6"/>
+    <bonus type="DL" row="8" col="8"/>
+    <bonus type="DL" row="8" col="12"/>
+    <bonus type="DL" row="11" col="0"/>
+    <bonus type="DL" row="11" col="7"/>
+    <bonus type="DL" row="11" col="14"/>
+    <bonus type="DL" row="12" col="6"/>
+    <bonus type="DL" row="12" col="8"/>
+    <bonus type="DL" row="14" col="3"/>
+    <bonus type="DL" row="14" col="11"/>
+</board>

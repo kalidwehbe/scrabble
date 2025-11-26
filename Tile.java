@@ -1,9 +1,12 @@
+import java.io.Serializable;
+
 /**
  * Tile represents a single letter tile in the Scrabble game.
  * Each tile has a letter, a point value (score), and may be a blank tile.
  * Blank tiles can represent any letter but are worth 0 points.
  */
-public class Tile {
+public class Tile implements Serializable {
+    private static final long serialVersionUID = 1L;
     private char letter;
     private int score;
     private boolean blank; // true for blank tiles

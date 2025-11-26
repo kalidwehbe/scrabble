@@ -1,9 +1,11 @@
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * Represents a snapshot of the game state for Undo/Redo.
  */
-public class GameState {
+public class GameState implements Serializable {
+    private static final long serialVersionUID = 1L;
     public Board board;
     public List<Player> players;
     public Queue<Tile> bag;

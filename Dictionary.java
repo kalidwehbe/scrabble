@@ -1,7 +1,8 @@
 import java.io.*;
 import java.util.*;
 
-public class Dictionary {
+public class Dictionary implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Set<String> words;
 
     public Dictionary(String filename) {

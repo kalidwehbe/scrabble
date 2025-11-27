@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
@@ -11,9 +12,15 @@ public class GameViewGUI extends JFrame implements GameObserver {
     private JTextArea playersArea;
     private JTextField commandInput;
     private JLabel scoreReferenceLabel;
+    private JLabel timerLabel;
     private GameController controller;
+    private Timer turnTimer;
+    private int secondsRemaining;
+    private final int turnTimeLimitSeconds;
+    private Player timerPlayer;
 
-    public GameViewGUI() {
+    public GameViewGUI(int turnTimeLimitSeconds) {
+        this.turnTimeLimitSeconds = turnTimeLimitSeconds;
         setTitle("Scrabble Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 850);
@@ -73,6 +80,11 @@ public class GameViewGUI extends JFrame implements GameObserver {
         scoreReferenceLabel.setHorizontalAlignment(SwingConstants.CENTER);
         scoreReferenceLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
         bottomPanel.add(scoreReferenceLabel, BorderLayout.NORTH);
+
+        timerLabel = new JLabel("Time left: " + turnTimeLimitSeconds + "s");
+        timerLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        timerLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
+        bottomPanel.add(timerLabel, BorderLayout.CENTER);
 
         commandInput = new JTextField();
         commandInput.setFont(new Font("Monospaced", Font.PLAIN, 16));
@@ -194,6 +206,7 @@ public class GameViewGUI extends JFrame implements GameObserver {
         if (lastError != null && !lastError.isEmpty()) {
             messageArea.append("Message: " + lastError + "\n");
         }
+        startTurnTimer(currentPlayer);
     }
 
     public void displayMessage(String msg) {
@@ -215,6 +228,7 @@ public class GameViewGUI extends JFrame implements GameObserver {
                 "SWAP LETTERS - Swap tiles from your rack\n" +
                 "   Example: SWAP ABC\n\n" +
                 "PASS - Skip your turn\n" +
+                "TIMER - You have " + turnTimeLimitSeconds + " seconds per turn; when it hits 0 your turn is passed\n" +
                 "EXIT - Quit the game\n\n" +
                 "=== NOTES ===\n" +
                 "- Rows: 1 to 15\n" +
@@ -233,6 +247,49 @@ public class GameViewGUI extends JFrame implements GameObserver {
                 "K=5  L=1  M=3  N=1  O=1  P=3  Q=10 R=1  S=1  T=1  " +
                 "U=1  V=4  W=4  X=8  Y=4  Z=10" + "\n 2=DL 3=TL d=DW t=TW";
     }
-}
 
+    // ----------------------------------------
+    // TURN TIMER
+    // ----------------------------------------
+    private void startTurnTimer(Player currentPlayer) {
+        if (currentPlayer instanceof AIPlayer) {
+            stopTurnTimer();
+            timerLabel.setText("AI turn (no timer)");
+            return;
+        }
+
+        // Keep the existing timer if the same player is still thinking
+        if (turnTimer != null && turnTimer.isRunning() && currentPlayer == timerPlayer) {
+            timerLabel.setText("Time left: " + secondsRemaining + "s");
+            return;
+        }
+
+        stopTurnTimer();
+        timerPlayer = currentPlayer;
+        secondsRemaining = turnTimeLimitSeconds;
+        timerLabel.setText("Time left: " + secondsRemaining + "s");
+
+        turnTimer = new Timer(1000, e -> {
+            secondsRemaining--;
+            if (secondsRemaining <= 0) {
+                stopTurnTimer();
+                timerLabel.setText("Time expired. Passing turn.");
+                if (controller != null) {
+                    controller.handleTurnTimeout();
+                }
+            } else {
+                timerLabel.setText("Time left: " + secondsRemaining + "s");
+            }
+        });
+        turnTimer.start();
+    }
+
+    public void stopTurnTimer() {
+        if (turnTimer != null) {
+            turnTimer.stop();
+            turnTimer = null;
+        }
+        timerPlayer = null;
+    }
+}
 

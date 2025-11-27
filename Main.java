@@ -37,13 +37,41 @@ public class Main {
             }
 
         }
-        Scanner sc = new Scanner(System.in);
-
         System.out.println("Select a board:");
         System.out.println("1) Standard");
         System.out.println("2) Diagonal");
         System.out.println("3) Corner Star");
-        int choice = sc.nextInt();
+        int choice = 0;
+        while (choice < 1 || choice > 3) {
+            System.out.print("Enter board choice (1-3): ");
+            try {
+                choice = Integer.parseInt(scanner.nextLine().trim());
+            } catch (NumberFormatException e) {
+                choice = 0;
+            }
+        }
+
+        int turnTimeLimit = 90;
+        boolean timerChosen = false;
+        while (!timerChosen) {
+            System.out.print("Enter turn timer in seconds (default 90): ");
+            String input = scanner.nextLine().trim();
+            if (input.isEmpty()) {
+                timerChosen = true;
+            } else {
+                try {
+                    int val = Integer.parseInt(input);
+                    if (val > 0) {
+                        turnTimeLimit = val;
+                        timerChosen = true;
+                    } else {
+                        System.out.println("Please enter a positive number of seconds.");
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid number. Please enter digits only.");
+                }
+            }
+        }
 
         String boardFile = "";
         switch (choice) {
@@ -70,7 +98,7 @@ public class Main {
         }
 
         // 3. Create view and controller
-        GameViewGUI view = new GameViewGUI();
+        GameViewGUI view = new GameViewGUI(turnTimeLimit);
         model.addObserver(view);
         GameController controller = new GameController(model, view);
 

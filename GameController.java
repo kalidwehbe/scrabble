@@ -224,6 +224,16 @@ public class GameController {
     }
 
     // -----------------------
+    // TURN TIMER TIMEOUT
+    // -----------------------
+    public void handleTurnTimeout() {
+        saveState();
+        model.passTurn();
+        view.displayMessage("Time expired. Turn passed.");
+        maybeDoAITurn();
+    }
+
+    // -----------------------
     // SAVE / LOAD METHODS
     // -----------------------
 
@@ -335,4 +345,3 @@ public class GameController {
         }
     }
 }
-

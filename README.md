@@ -1,4 +1,4 @@
-# Scrabble - Milestone 4
+# Scrabble - Milestone 5
 
 A Java Scrabble implementation with GUI using MVC and Observer patterns.
 
@@ -62,9 +62,16 @@ Example: PLACE CAT 8 H H BLANK T
 SWAP <TILES>    - Example: SWAP ABC
 PASS            - Skip turn
 EXIT            - End game
+
 ```
+---
+
+## New Features in Milestone 5
 
 ---
+
+### Custom Timer
+- Players can select a time limit on every turn then automatically pass after expiery 
 
 ## New Features in Milestone 4
 
@@ -221,6 +228,9 @@ The AI player (`AIPlayer.java`) implements a **greedy strategy** that selects th
 - **Kalid, Bashar:** Project organization and documentation updates
 - **Madhav:** UML and Sequence Diagram
 
+### Milestone 5
+
+- **All:** 90 Second Time Limit per Turn
 ---
 
 ## Changes from Milestone 1
@@ -413,6 +423,17 @@ The AI player (`AIPlayer.java`) implements a **greedy strategy** that selects th
 - **State Snapshots:** Immutable copies prevent reference issues in undo/redo
 - **Transient Observers:** Prevents Swing GUI components from being serialized, avoiding platform-specific serialization issues
 
+
+---
+
+## Changes from Milestone 4
+
+### New Feature
+
+**Custom Timer:**
+- Added a timer to automatically pass turns if players take too long
+- Custom time limit or default to 90s
+  
 ---
 
 ## Known Issues

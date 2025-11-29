@@ -219,6 +219,7 @@ The AI player (`AIPlayer.java`) implements a **greedy strategy** that selects th
 - **Kalid, Bashar:** Save/Load game functionality with serialization
 - **Kalid, Bashar:** JUnit tests for undo/redo and serialization
 - **Kalid, Bashar:** Project organization and documentation updates
+- **Madhav:** UML and Sequence Diagram
 
 ---
 
